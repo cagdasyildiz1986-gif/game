@@ -13,6 +13,10 @@
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon.svg">
 <link rel="stylesheet" href="css/site.css">
+<script>
+  // Tema, CSS yüklenmeden önce uygulanır (yanıp sönmeyi önler)
+  try { document.documentElement.dataset.theme = localStorage.getItem('aurum-theme') || 'light'; } catch (e) {}
+</script>
 </head>
 <body>
 
@@ -22,13 +26,15 @@
       <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
         <defs>
           <linearGradient id="bm" x1="0" y1="0" x2="0.4" y2="1">
-            <stop offset="0%" stop-color="#ffe9a8"/><stop offset="50%" stop-color="#f5c451"/>
-            <stop offset="100%" stop-color="#8a5a05"/>
+            <stop offset="0%" stop-color="#e6c069"/><stop offset="100%" stop-color="#b8892b"/>
+          </linearGradient>
+          <linearGradient id="bmInk" x1="0" y1="0" x2="0.4" y2="1">
+            <stop offset="0%" stop-color="#2b3a80"/><stop offset="100%" stop-color="#141a2e"/>
           </linearGradient>
         </defs>
-        <path d="M24 2 44 12v18c0 9-8.5 14.5-20 16C12.5 44.5 4 39 4 30V12z" fill="none" stroke="url(#bm)" stroke-width="2.5"/>
-        <path d="M13 33 24 11l11 22h-6.5L24 23l-4.5 10z" fill="url(#bm)"/>
-        <path d="M18.5 28h11v3.5h-11z" fill="url(#bm)" opacity=".7"/>
+        <path d="M24 2 44 12v18c0 9-8.5 14.5-20 16C12.5 44.5 4 39 4 30V12z" fill="url(#bmInk)"/>
+        <path d="M13.5 34 24 12l10.5 22h-6.2L24 24.4 19.7 34z" fill="url(#bm)"/>
+        <path d="M18.8 28.6h10.4v3.4H18.8z" fill="url(#bm)" opacity=".75"/>
       </svg>
       <span class="brand-text">
         <span class="brand-name">AURUM</span>
@@ -36,7 +42,17 @@
       </span>
     </a>
 
+    <nav class="mainnav" id="mainnav">
+      <a href="#/" data-nav="/">Ana Sayfa</a>
+      <a href="#/kategori/slot" data-nav="/kategori/slot">Slot</a>
+      <a href="#/kategori/masa" data-nav="/kategori/masa">Masa Oyunları</a>
+      <a href="live.html">Canlı Masalar</a>
+      <a href="#/gorevler" data-nav="/gorevler">Görevler</a>
+    </nav>
+
     <span class="topbar-spacer"></span>
+
+    <button class="icon-btn" id="btn-theme" aria-label="Tema değiştir"></button>
 
     <div class="balance-chip" id="balance-chip" role="button" tabindex="0">
       <svg class="coin" viewBox="0 0 24 24" aria-hidden="true">

@@ -13,6 +13,10 @@
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon.svg">
 <link rel="stylesheet" href="css/style.css">
+<script>
+  // Tema, CSS yüklenmeden önce uygulanır (yanıp sönmeyi önler)
+  try { document.documentElement.dataset.theme = localStorage.getItem('aurum-theme') || 'light'; } catch (e) {}
+</script>
 </head>
 <body>
 

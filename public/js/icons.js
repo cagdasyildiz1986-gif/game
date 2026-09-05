@@ -29,7 +29,11 @@ export const ICONS = {
   shield: `<path d="M12 3 5 6v6c0 4.5 3 7.7 7 9 4-1.3 7-4.5 7-9V6z" ${P}/><path d="m9 12 2 2 4-4" ${P}/>`,
   info: `<circle cx="12" cy="12" r="9" ${P}/><path d="M12 11v5M12 8h.01" ${P}/>`,
   check: `<path d="m5 13 4 4L19 7" ${P}/>`,
-  lock: `<rect x="4" y="10" width="16" height="11" rx="2" ${P}/><path d="M8 10V7a4 4 0 0 1 8 0v3" ${P}/>`
+  lock: `<rect x="4" y="10" width="16" height="11" rx="2" ${P}/><path d="M8 10V7a4 4 0 0 1 8 0v3" ${P}/>`,
+  sun: `<circle cx="12" cy="12" r="4.2" ${P}/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8" ${P}/>`,
+  moon: `<path d="M20 13.5A8.5 8.5 0 0 1 10.5 4a8.5 8.5 0 1 0 9.5 9.5z" ${P}/>`,
+  chart: `<path d="M4 20V10M10 20V4M16 20v-7M22 20H2" ${P}/>`,
+  server: `<rect x="3" y="4" width="18" height="7" rx="2" ${P}/><rect x="3" y="13" width="18" height="7" rx="2" ${P}/><path d="M7 7.5h.01M7 16.5h.01" ${P}/>`
 };
 
 export function icon(name, cls = '') {

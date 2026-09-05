@@ -26,6 +26,30 @@ const fmt = (n) =>
 const money = (n) => `${currency.symbol}${fmt(n)}`;
 const VOLATILITY = { dusuk: 'Düşük volatilite', orta: 'Orta volatilite', yuksek: 'Yüksek volatilite' };
 
+/* ═════════ Tema ═════════ */
+const THEME_KEY = 'aurum-theme';
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  try {
+    localStorage.setItem(THEME_KEY, theme);
+  } catch {
+    /* depolama kapali olabilir */
+  }
+  const btn = $('btn-theme');
+  if (btn) btn.innerHTML = icon(theme === 'dark' ? 'sun' : 'moon');
+}
+
+function initTheme() {
+  let theme = 'light';
+  try {
+    theme = localStorage.getItem(THEME_KEY) || 'light';
+  } catch {
+    /* yoksay */
+  }
+  applyTheme(theme);
+}
+
 function toast(message, gold = false) {
   const host = $('toast-host');
   host.innerHTML = `<div class="toast${gold ? ' gold' : ''}">${message}</div>`;
@@ -69,7 +93,7 @@ function heroSlides() {
       text: 'Görevleri tamamla, kredin artsın. Gerçek para yok — sadece oyun.',
       cta: 'Ücretsiz Katıl',
       route: '#/kayit',
-      palette: ['#2a0d05', '#ff6b1f', '#ffd166'],
+      palette: ['#1b2559', '#3d54b8', '#e6c069'],
       motif: 'crown'
     },
     {
@@ -78,7 +102,7 @@ function heroSlides() {
       text: 'Jackpot Cards bonusu ve %95,8 RTP ile tam sürüm slot.',
       cta: 'Hemen Oyna',
       route: '#/oyun/lucky-reels',
-      palette: ['#12082e', '#7b3ff2', '#ffd166'],
+      palette: ['#241a4d', '#6b52d8', '#f0d79a'],
       motif: 'reels'
     },
     {
@@ -87,7 +111,7 @@ function heroSlides() {
       text: 'Günlük görevler, kilometre taşları ve sürpriz ödüller seni bekliyor.',
       cta: 'Görevlere Git',
       route: '#/gorevler',
-      palette: ['#04231c', '#12b886', '#c3fae8'],
+      palette: ['#0a2e26', '#0f8f6b', '#a8ecd6'],
       motif: 'gift'
     }
   ];
@@ -132,11 +156,33 @@ function heroArt(slide, index) {
   </svg>`;
 }
 
+function trustBar() {
+  const items = [
+    ['server', 'Sunucu RNG', 'Sonuçlar sunucuda üretilir'],
+    ['lock', 'Kanıtlanabilir', 'HMAC-SHA256 doğrulaması'],
+    ['coin', 'Gerçek Para Yok', 'Krediler satın alınamaz'],
+    ['shield', '18+ Sorumlu Oyun', 'Yalnızca eğlence']
+  ];
+  return `<div class="trustbar">
+    ${items
+      .map(
+        ([ico, title, sub]) => `<div class="trust">
+          <div class="trust-icon">${icon(ico)}</div>
+          <div style="min-width:0">
+            <div class="trust-title">${title}</div>
+            <div class="trust-sub">${sub}</div>
+          </div>
+        </div>`
+      )
+      .join('')}
+  </div>`;
+}
+
 function jackpotBanner(jackpots) {
   const total = jackpots.reduce((sum, j) => sum + j.amount, 0);
   return `<div class="jackpot-banner">
     <div class="jackpot-label">Progresif Jackpot Havuzu</div>
-    <div class="jackpot-total">₳ ${fmt(total)}</div>
+    <div class="jackpot-total">${money(total)}</div>
     <div class="jackpot-levels">
       ${jackpots
         .map(
@@ -244,6 +290,8 @@ function renderHome() {
       .join('')}
     <button class="pill" data-route="#/kategori/favoriler">${icon('heart')}<span>Favoriler</span></button>
   </div>
+
+  ${trustBar()}
 
   ${jackpotBanner(data.jackpots)}
 
@@ -582,6 +630,9 @@ async function renderProfile() {
           : ''
       }
       <button class="btn btn-ghost btn-block" style="justify-content:flex-start;border:none"
+        id="btn-theme-profile">${icon(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon')}
+        ${document.documentElement.dataset.theme === 'dark' ? 'Açık Tema' : 'Koyu Tema'}</button>
+      <button class="btn btn-ghost btn-block" style="justify-content:flex-start;border:none"
         data-route="#/kategori/favoriler">${icon('heart')} Favorilerim</button>
       <button class="btn btn-ghost btn-block" style="justify-content:flex-start;border:none"
         data-route="#/gorevler">${icon('trophy')} Görevlerim</button>
@@ -901,6 +952,10 @@ function renderChrome() {
     el.classList.toggle('on', state.route === path || (path === '/' && state.route === '/'));
   }
   $('nav-play').innerHTML = icon('spin');
+
+  document.querySelectorAll('#mainnav [data-nav]').forEach((link) => {
+    link.classList.toggle('on', link.dataset.nav === state.route);
+  });
 }
 
 /* ═════════ Olay delegasyonu ═════════ */
@@ -976,6 +1031,11 @@ function bindGlobalEvents() {
     }
   });
 
+  $('btn-theme').onclick = () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+  };
+
   $('btn-account').onclick = () => {
     if (state.player?.guest) authSheet('kayit');
     else navigate('#/profil');
@@ -994,6 +1054,10 @@ function bindGlobalEvents() {
       state.backend.logout().then(() => location.reload());
     }
     if (e.target.closest('#btn-avatar')) openAvatarPicker();
+    if (e.target.closest('#btn-theme-profile')) {
+      applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+      render();
+    }
     const live = e.target.closest('[data-live]');
     if (live) location.href = 'live.html';
   });
@@ -1004,6 +1068,8 @@ function bindGlobalEvents() {
 /* ═════════ Baslatma ═════════ */
 
 async function boot() {
+  initTheme();
+
   if (window.SLOT_DEMO) {
     const { demoApi } = await import('./demo.js');
     state.backend = demoApi;

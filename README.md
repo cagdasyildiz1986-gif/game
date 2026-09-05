@@ -78,6 +78,7 @@ npm install && npm start   # http://localhost:3000
 | **Güvenlik** | Tüm matematik ve RNG **sunucuda**; istemci sadece sonucu canlandırır |
 | **Adalet** | HMAC-SHA256 tabanlı *provably fair* (sunucu tohumu + istemci tohumu + nonce) |
 | **Arayüz** | Mobil öncelikli, dokunmatik, turbo + otomatik oyun, offline kabuk (PWA) |
+| **Tema** | Açık (kurumsal, varsayılan) ve koyu tema — tek token seti, anında geçiş |
 | **Varlıklar** | Tüm semboller vektörel SVG, tüm sesler Web Audio ile sentezlenir — harici dosya yok |
 
 ---
@@ -126,6 +127,9 @@ server/
   routes/game.js        REST API
   store/memory.js       Oyuncu deposu (bellek + JSON dosyası)
 public/
+  css/site.css          Tasarım sistemi: açık tema varsayılan, koyu tema
+                        `<html data-theme="dark">` ile açılır. Tüm sayfalar
+                        aynı token setini (renk, gölge, yarıçap) kullanır.
   index.html            Site (lobi) iskeleti
   game.html             Slot oyunu sayfası
   live.html             Canlı masa (poker / blackjack)
@@ -154,6 +158,22 @@ tools/build-demo.js     GitHub Pages demo derlemesi (dist/)
 .devcontainer/          Codespaces yapılandırması
 capacitor.config.json   Native uygulama yapılandırması
 ```
+
+---
+
+## Tasarım sistemi
+
+Kimlik: **lacivert + altın + beyaz** — premium oyun operatörü dili. Neon parlamalar
+yerine yumuşak gölgeler, geniş boşluk ve net tipografik hiyerarşi.
+
+- **Açık tema varsayılandır**; koyu tema üst bardaki (masaüstü) veya profildeki
+  (mobil) düğmeyle açılır ve `localStorage`'da saklanır.
+- Tek token seti: `--surface`, `--line`, `--text`, `--brand`, `--gold`, `--sh*`.
+  Koyu tema yalnızca bu değişkenleri yeniden tanımlar; bileşen kuralları ortaktır.
+- Tema, CSS yüklenmeden önce `<head>` içinde uygulanır (yanıp sönme olmaz).
+- Oyun kabini ve poker keçesi temadan bağımsız olarak zengin/koyu kalır —
+  masa oyunlarında doğru olan budur.
+- Masaüstünde gerçek üst menü, mobilde alt sekme çubuğu.
 
 ---
 

@@ -9,6 +9,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/live.css">
+<script>
+  // Tema, CSS yüklenmeden önce uygulanır (yanıp sönmeyi önler)
+  try { document.documentElement.dataset.theme = localStorage.getItem('aurum-theme') || 'light'; } catch (e) {}
+</script>
 </head>
 <body>
 
@@ -22,7 +26,7 @@
     <div class="live-chip" id="top-balance">—</div>
   </header>
 
-  <main id="live-body" style="flex:1;min-height:0;overflow-y:auto"></main>
+  <main id="live-body" class="live-body"></main>
 </div>
 
 <div id="sheet-host"></div>
