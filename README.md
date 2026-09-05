@@ -21,11 +21,10 @@ Bu sürüm **demo modundadır**: sunucu olmadığı için oyun motoru (`server/g
 altındaki aynı modüller) tarayıcıya yüklenir ve bakiye `localStorage`'da tutulur.
 Ekranın üstünde "DEMO" rozeti görünür.
 
-> **Tek seferlik ayar:** Repo → **Settings → Pages → Build and deployment →
-> Source: GitHub Actions** seçin. (Workflow token'ı bu ayarı kendi başına açamıyor —
-> GitHub buna izin vermiyor.) Sonra **Actions** sekmesinden "Demo'yu GitHub Pages'e
-> yayınla" akışını **Re-run all jobs** ile tekrar çalıştırın; bir sonraki push'ta
-> otomatik yayınlanır.
+> Yayın, `main` dalına her push'ta `.github/workflows/pages.yml` ile otomatik yapılır.
+> Repoyu forklarsanız veya yeni bir repoda kurarsanız **Settings → Pages → Build and
+> deployment → Source: GitHub Actions** ayarını bir kez elle seçmeniz gerekir; workflow
+> token'ının Pages sitesini oluşturma izni yoktur.
 
 ### 2. Gerçek mimariyle — GitHub Codespaces
 
