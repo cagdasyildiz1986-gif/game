@@ -189,11 +189,12 @@ function hideOrbs(orbs) {
   for (const o of orbs) o.el.style.visibility = 'hidden';
 }
 function revealOrbs(orbs) {
-  for (const o of orbs) {
+  orbs.forEach((o, i) => {
     o.el.style.visibility = '';
     o.el.classList.add('arriving');
+    sfx.zap(i * 0.06);
     setTimeout(() => o.el.classList.remove('arriving'), 520);
-  }
+  });
 }
 
 /** Baştan tüm ızgarayı düşürür (yeni çevirme). */
@@ -213,7 +214,7 @@ async function dropAll(grid) {
   }
 
   void $('grid').offsetHeight;
-  sfx.spin();
+  sfx.stormSpin();
 
   const waits = [];
   for (let r = 0; r < REELS; r += 1) {
@@ -222,7 +223,7 @@ async function dropAll(grid) {
       sleep(delay).then(() => {
         for (let row = 0; row < ROWS; row += 1) releaseFall(tiles[r][row]);
         return sleep(fall).then(() => {
-          sfx.reelStop(r);
+          sfx.gemLand(r);
           for (let row = 0; row < ROWS; row += 1) markLanded(tiles[r][row]);
         });
       })
@@ -263,7 +264,7 @@ async function applyTumble(step) {
     el.classList.remove('win');
     el.classList.add('burst');
   }
-  sfx.reelStop(3, true);
+  sfx.gemBreak(cleared.length);
   await sleep(pace(300));
   for (const [r, row] of cleared) {
     tiles[r][row]?.remove();
@@ -366,6 +367,7 @@ function flashBoard() {
 /** Rastgele yerlere düşen atmosferik şimşekler. */
 function strike(count = 1, host = $('bolts')) {
   flashBoard();
+  sfx.thunder();
   const box = host.getBoundingClientRect();
   const paths = [];
   for (let i = 0; i < count; i += 1) {
@@ -391,7 +393,8 @@ async function strikeCells(targets) {
   });
   host.innerHTML = paths.join('');
   flashBoard();
-  sfx.reelStop(0, true);
+  // Çarpanın inişi oyunun en belirgin sesidir.
+  sfx.thunder({ big: true });
 
   document.body.classList.add('shake');
   setTimeout(() => document.body.classList.remove('shake'), 380);
@@ -490,13 +493,13 @@ async function collectMultipliers(round) {
   $('collector-value').textContent = 'x0';
   $('collector').hidden = false;
   strike(3);
-  sfx.anticipation(600);
   await sleep(pace(260));
 
   // Küreleri tek tek merkeze çek, toplamı say
   let running = round.free ? round.multiplierBefore : 0;
   const sorted = [...round.orbs].sort((a, b) => a.value - b.value);
-  for (const orb of sorted) {
+  for (let i = 0; i < sorted.length; i += 1) {
+    const orb = sorted[i];
     const el = tiles[orb.reel]?.[orb.row];
     if (el) {
       const r = el.getBoundingClientRect();
@@ -506,7 +509,7 @@ async function collectMultipliers(round) {
     }
     running += orb.value;
     $('collector-value').textContent = `x${fmt(running)}`;
-    sfx.coin(Math.min(9, orb.value));
+    sfx.charge(i);
     await sleep(pace(180));
   }
 
@@ -517,6 +520,7 @@ async function collectMultipliers(round) {
   valueEl.classList.remove('slam');
   void valueEl.offsetWidth;
   valueEl.classList.add('slam');
+  sfx.thunder({ big: true });
   sfx.bigWin();
   if (final >= 25) {
     document.body.classList.add('shake');

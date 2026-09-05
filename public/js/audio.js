@@ -28,24 +28,46 @@ function tone({ freq = 440, type = 'sine', duration = 0.12, gain = 0.15, at = 0,
   osc.stop(t0 + duration + 0.05);
 }
 
-function noise({ duration = 0.3, gain = 0.06 }) {
+/**
+ * Filtrelenmis gurultu.
+ * @param {object} o
+ * @param {number} o.duration saniye
+ * @param {number} o.gain     tepe seviye
+ * @param {string} o.type     biquad turu (bandpass / lowpass / highpass)
+ * @param {number} o.freq     filtre kesim frekansi
+ * @param {number} o.sweepTo  varsa filtre bu frekansa suzulur (gok gurultusu)
+ * @param {number} o.q        filtre keskinligi
+ * @param {number} o.at       gecikme
+ * @param {number} o.attack   yukselis suresi (0 = ani vurus)
+ */
+function noise({
+  duration = 0.3, gain = 0.06, type = 'bandpass', freq = 1200,
+  sweepTo = null, q = 1, at = 0, attack = 0
+}) {
   if (!enabled) return;
   const ac = context();
-  const frames = Math.floor(ac.sampleRate * duration);
+  const t0 = ac.currentTime + at;
+  const frames = Math.max(1, Math.floor(ac.sampleRate * duration));
   const buffer = ac.createBuffer(1, frames, ac.sampleRate);
   const data = buffer.getChannelData(0);
-  for (let i = 0; i < frames; i += 1) {
-    data[i] = (Math.random() * 2 - 1) * (1 - i / frames);
-  }
+  for (let i = 0; i < frames; i += 1) data[i] = Math.random() * 2 - 1;
+
   const src = ac.createBufferSource();
   const amp = ac.createGain();
   const filter = ac.createBiquadFilter();
-  filter.type = 'bandpass';
-  filter.frequency.value = 1200;
-  amp.gain.value = gain;
+  filter.type = type;
+  filter.frequency.setValueAtTime(freq, t0);
+  if (sweepTo) filter.frequency.exponentialRampToValueAtTime(Math.max(20, sweepTo), t0 + duration);
+  filter.Q.value = q;
+
+  amp.gain.setValueAtTime(0.0001, t0);
+  amp.gain.exponentialRampToValueAtTime(gain, t0 + Math.max(0.004, attack));
+  amp.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+
   src.buffer = buffer;
   src.connect(filter).connect(amp).connect(ac.destination);
-  src.start();
+  src.start(t0);
+  src.stop(t0 + duration + 0.02);
 }
 
 export const sfx = {
@@ -124,5 +146,72 @@ export const sfx = {
   },
   click() {
     tone({ freq: 520, type: 'square', duration: 0.04, gain: 0.06 });
+  },
+
+  /* ═══════════ Fırtına paleti (YILDIRIM) ═══════════ */
+
+  /**
+   * GÖK GÜRÜLTÜSÜ — çarpan indiğinde duyulan ana efekt.
+   * Üç katman: keskin çatırtı (tiz), gövde (süzülen uğultu) ve derin sub.
+   * `big` verildiğinde sesin tamamı öne çıkar; oyunun en yüksek efektidir.
+   */
+  thunder({ big = false, at = 0 } = {}) {
+    if (!enabled) return;
+    const k = big ? 1 : 0.55;
+    // 1) Çatırtı — yıldırımın çarptığı an
+    noise({ duration: 0.09, gain: 0.30 * k, type: 'highpass', freq: 2600, at });
+    noise({ duration: 0.05, gain: 0.22 * k, type: 'bandpass', freq: 5200, q: 0.8, at });
+    // 2) Gövde — açılıp dağılan uğultu
+    noise({
+      duration: big ? 1.5 : 0.8,
+      gain: 0.24 * k,
+      type: 'lowpass',
+      freq: 900,
+      sweepTo: 70,
+      at: at + 0.03,
+      attack: 0.02
+    });
+    // 3) Derin sub — göğüste hissedilen kısım
+    tone({
+      freq: big ? 62 : 78, type: 'sine',
+      duration: big ? 1.1 : 0.6,
+      gain: 0.30 * k, sweep: big ? 32 : 46, at: at + 0.02
+    });
+    if (big) tone({ freq: 140, type: 'triangle', duration: 0.35, gain: 0.12, sweep: 60, at: at + 0.02 });
+  },
+
+  /** Elektrik çıtırtısı — küre belirirken. */
+  zap(at = 0) {
+    noise({ duration: 0.07, gain: 0.16, type: 'bandpass', freq: 3400, q: 4, at });
+    tone({ freq: 1900, type: 'square', duration: 0.08, gain: 0.10, sweep: 320, at });
+  },
+
+  /** Taş kırılması — kazanan semboller patlarken. */
+  gemBreak(count = 1) {
+    const base = [1500, 2050, 2700];
+    base.forEach((f, i) =>
+      tone({ freq: f * (0.94 + Math.random() * 0.12), type: 'triangle',
+        duration: 0.07, gain: 0.09, at: i * 0.018 })
+    );
+    noise({ duration: 0.12, gain: 0.09 + Math.min(0.06, count * 0.006),
+      type: 'highpass', freq: 2200 });
+  },
+
+  /** Taşın yuvaya oturması. */
+  gemLand(index = 0) {
+    tone({ freq: 220 + index * 18, type: 'triangle', duration: 0.07, gain: 0.08, sweep: 120 });
+    noise({ duration: 0.05, gain: 0.05, type: 'lowpass', freq: 900 });
+  },
+
+  /** Fırtına çevirmesi — rüzgâr + uzak gürleme. */
+  stormSpin() {
+    noise({ duration: 0.5, gain: 0.07, type: 'lowpass', freq: 700, sweepTo: 240, attack: 0.08 });
+    tone({ freq: 120, type: 'sine', duration: 0.4, gain: 0.09, sweep: 65 });
+  },
+
+  /** Çarpanlar toplanırken yükselen şarj sesi. */
+  charge(step = 0) {
+    tone({ freq: 320 + step * 110, type: 'square', duration: 0.1, gain: 0.09, sweep: 1600 });
+    noise({ duration: 0.06, gain: 0.05, type: 'bandpass', freq: 2600, q: 3 });
   }
 };

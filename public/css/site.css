@@ -429,8 +429,10 @@ a { color: inherit; text-decoration: none; }
 .game:active { transform: scale(.985); }
 .game-art { position: relative; aspect-ratio: 1; overflow: hidden; background: #0d1120; }
 .game-art .cover { display: block; width: 100%; height: 100%; }
-/* Kendi kapak görseli olan oyunlar (vektörel üretim yerine) */
-.game-art .cover-img { object-fit: cover; }
+/* Kendi kapak görseli olan oyunlar (vektörel üretim yerine).
+   Kural kapsayıcıdan bağımsızdır: <img> kendi doğal boyutuyla
+   kutuyu şişirmesin diye her yerde kutuyu kaplar. */
+img.cover-img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .cover-sheen { opacity: 0; transition: opacity .3s; }
 .game:hover .cover-sheen { opacity: 1; }
 
@@ -725,7 +727,12 @@ a { color: inherit; text-decoration: none; }
   border-radius: var(--r-lg); border: 1px solid var(--line);
   background: var(--surface); box-shadow: var(--sh-sm);
 }
-.detail-cover { width: 128px; flex: 0 0 128px; border-radius: var(--r); overflow: hidden; box-shadow: var(--sh-sm); }
+.detail-cover {
+  width: 128px; flex: 0 0 128px;
+  aspect-ratio: 1;              /* görsel kapaklarda yükseklik belirsiz kalmasın */
+  border-radius: var(--r); overflow: hidden; box-shadow: var(--sh-sm);
+}
+.detail-cover .cover { display: block; width: 100%; height: 100%; }
 .detail-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .detail-name { font-size: 20px; font-weight: 800; line-height: 1.2; letter-spacing: -.3px; }
 .detail-provider { font-size: 12.5px; color: var(--brand); font-weight: 600; margin-top: 4px; }
