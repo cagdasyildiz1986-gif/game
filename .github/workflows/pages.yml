@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - claude/slot-game-mobile-app-4g3xb6
   workflow_dispatch:
 
 permissions:
