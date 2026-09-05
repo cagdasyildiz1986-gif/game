@@ -65,8 +65,35 @@ export const sfx = {
     noise({ duration: 0.35, gain: 0.05 });
     tone({ freq: 180, type: 'triangle', duration: 0.25, gain: 0.08, sweep: 90 });
   },
-  reelStop(index = 0) {
+  reelStop(index = 0, heavy = false) {
     tone({ freq: 260 + index * 25, type: 'square', duration: 0.06, gain: 0.09 });
+    if (heavy) {
+      // Beklentiden sonra duran makara icin tok bir "cat" sesi
+      tone({ freq: 110, type: 'sawtooth', duration: 0.22, gain: 0.14, sweep: 55 });
+      noise({ duration: 0.18, gain: 0.08 });
+    }
+  },
+  /** Scatter beklentisi: yukselen, hizlanan gerilim sesi. */
+  anticipation(durationMs = 2000) {
+    if (!enabled) return;
+    const seconds = durationMs / 1000;
+    let t = 0;
+    let step = 0;
+    while (t < seconds) {
+      const progress = t / seconds;
+      tone({
+        freq: 300 + progress * 700,
+        type: 'square',
+        duration: 0.07,
+        gain: 0.05 + progress * 0.06,
+        at: t
+      });
+      // Vurus araligi giderek kisalir -> nabiz hizlanir
+      t += Math.max(0.07, 0.24 - progress * 0.17);
+      step += 1;
+    }
+    // Alt katmanda yukselen ugultu
+    tone({ freq: 90, type: 'sawtooth', duration: seconds, gain: 0.05, sweep: 320 });
   },
   win(level = 1) {
     const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];

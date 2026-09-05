@@ -1,7 +1,7 @@
 {
-  "name": "Lucky Reels - Slot",
-  "short_name": "Lucky Reels",
-  "description": "Mobil slot oyunu. Sanal kredi ile oynanır, gerçek para yoktur.",
+  "name": "AURUM · Sosyal Casino",
+  "short_name": "AURUM",
+  "description": "Sanal kredi ile oynanan sosyal casino. Slot, masa oyunları, rulet ve bonus buy.",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

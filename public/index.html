@@ -2,179 +2,75 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Lucky Reels · Slot</title>
-<meta name="description" content="Mobil slot oyunu - sanal kredi ile oynanır, gerçek para yoktur.">
-<meta name="theme-color" content="#0b0716">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AURUM · Sosyal Casino</title>
+<meta name="description" content="Sanal kredi ile oynanan sosyal casino. Slot, masa oyunları, rulet ve bonus buy. Gerçek para yoktur.">
+<meta name="theme-color" content="#06060c">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon.svg">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/site.css">
 </head>
 <body>
 
-<div id="sprite-host" aria-hidden="true"></div>
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="#/" aria-label="AURUM ana sayfa">
+      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+        <defs>
+          <linearGradient id="bm" x1="0" y1="0" x2="0.4" y2="1">
+            <stop offset="0%" stop-color="#ffe9a8"/><stop offset="50%" stop-color="#f5c451"/>
+            <stop offset="100%" stop-color="#8a5a05"/>
+          </linearGradient>
+        </defs>
+        <path d="M24 2 44 12v18c0 9-8.5 14.5-20 16C12.5 44.5 4 39 4 30V12z" fill="none" stroke="url(#bm)" stroke-width="2.5"/>
+        <path d="M13 33 24 11l11 22h-6.5L24 23l-4.5 10z" fill="url(#bm)"/>
+        <path d="M18.5 28h11v3.5h-11z" fill="url(#bm)" opacity=".7"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">AURUM</span>
+        <span class="brand-sub">SOSYAL CASINO</span>
+      </span>
+    </a>
 
-<div id="loader" class="loader">
-  <div class="loader-logo">LUCKY <span>REELS</span></div>
-  <div class="loader-bar"><i></i></div>
-  <p class="loader-note">Sanal kredi ile oynanır · Gerçek para yoktur</p>
-</div>
+    <span class="topbar-spacer"></span>
 
-<div id="app" class="app" hidden>
-
-  <header class="topbar">
-    <button class="icon-btn" id="btn-menu" aria-label="Menü">☰</button>
-    <div class="jackpots" id="jackpots"></div>
-    <button class="icon-btn" id="btn-sound" aria-label="Ses">🔊</button>
-  </header>
-
-  <div class="demo-badge" id="demo-badge" hidden>DEMO · oyun motoru tarayıcıda çalışıyor</div>
-
-  <main class="stage">
-    <div class="logo">LUCKY <span>REELS</span></div>
-    <div class="machine">
-      <div class="fs-badge" id="fs-badge" hidden>
-        <span id="fs-count">0</span> BEDAVA DÖNÜŞ · x<span id="fs-mult">3</span>
-      </div>
-
-      <div class="frame">
-        <div class="reels" id="reels"></div>
-        <svg class="lines" id="lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
-        <div class="fx" id="fx"></div>
-      </div>
-
-      <div class="winbar">
-        <span class="winbar-label">KAZANÇ</span>
-        <span class="winbar-value" id="win-value">0</span>
-        <span class="winbar-info" id="win-info"></span>
-      </div>
-    </div>
-  </main>
-
-  <footer class="controls">
-    <div class="meters">
-      <div class="meter">
-        <span class="meter-label">BAKİYE</span>
-        <span class="meter-value" id="balance">0</span>
-      </div>
-      <div class="meter">
-        <span class="meter-label">BAHİS</span>
-        <span class="meter-value" id="bet">0</span>
-      </div>
+    <div class="balance-chip" id="balance-chip" role="button" tabindex="0">
+      <svg class="coin" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" fill="#f5c451"/>
+        <circle cx="12" cy="12" r="7" fill="none" stroke="#8a5a05" stroke-width="1.4"/>
+        <text x="12" y="16.5" text-anchor="middle" font-size="11" font-weight="bold" fill="#6b4404">₳</text>
+      </svg>
+      <span class="balance-amount" id="balance">—</span>
+      <button class="balance-plus" id="btn-earn" aria-label="Puan kazan">+</button>
     </div>
 
-    <div class="pad">
-      <div class="bet-controls">
-        <button class="round-btn" id="bet-down" aria-label="Bahis azalt">−</button>
-        <button class="round-btn" id="bet-up" aria-label="Bahis artır">+</button>
-      </div>
+    <button class="icon-btn" id="btn-account" aria-label="Hesap"></button>
+  </div>
+</header>
 
-      <button class="spin-btn" id="spin" aria-label="Çevir">
-        <span class="spin-inner"><span id="spin-label">ÇEVİR</span></span>
-      </button>
+<main id="view" class="wrap page"></main>
 
-      <div class="aux-controls">
-        <button class="round-btn" id="btn-turbo" aria-label="Turbo mod">⚡</button>
-        <button class="round-btn" id="btn-auto" aria-label="Otomatik oyun">A</button>
-      </div>
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="nav-item" data-route="#/" id="nav-home"></button>
+    <button class="nav-item" data-route="#/ara" id="nav-search"></button>
+    <div class="nav-spin">
+      <button id="nav-play" aria-label="Hemen oyna"></button>
+      <span class="label">HEMEN OYNA</span>
     </div>
-  </footer>
-</div>
-
-<!-- ===== Modallar ===== -->
-
-<div class="modal" id="modal-paytable" hidden>
-  <div class="modal-card">
-    <header class="modal-head">
-      <h2>Ödeme Tablosu</h2>
-      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
-    </header>
-    <div class="modal-body" id="paytable-body"></div>
+    <button class="nav-item" data-route="#/gorevler" id="nav-tasks"></button>
+    <button class="nav-item" data-route="#/profil" id="nav-profile"></button>
   </div>
-</div>
+</nav>
 
-<div class="modal" id="modal-menu" hidden>
-  <div class="modal-card">
-    <header class="modal-head">
-      <h2>Menü</h2>
-      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
-    </header>
-    <div class="modal-body">
-      <button class="wide-btn" id="menu-paytable">📋 Ödeme Tablosu &amp; Kurallar</button>
-      <button class="wide-btn" id="menu-fair">🔒 Doğrulanabilir Adalet</button>
-      <button class="wide-btn" id="menu-stats">📊 İstatistikler</button>
-      <button class="wide-btn danger" id="menu-reset">♻️ Oturumu Sıfırla</button>
-      <p class="fineprint">
-        Bu oyun yalnızca eğlence amaçlıdır. Sanal kredilerin parasal karşılığı yoktur ve
-        gerçek para ile satın alınamaz veya nakde çevrilemez. 18+
-      </p>
-    </div>
-  </div>
-</div>
-
-<div class="modal" id="modal-fair" hidden>
-  <div class="modal-card">
-    <header class="modal-head">
-      <h2>Doğrulanabilir Adalet</h2>
-      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
-    </header>
-    <div class="modal-body" id="fair-body"></div>
-  </div>
-</div>
-
-<div class="modal" id="modal-stats" hidden>
-  <div class="modal-card">
-    <header class="modal-head">
-      <h2>İstatistikler</h2>
-      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
-    </header>
-    <div class="modal-body" id="stats-body"></div>
-  </div>
-</div>
-
-<div class="modal" id="modal-auto" hidden>
-  <div class="modal-card">
-    <header class="modal-head">
-      <h2>Otomatik Oyun</h2>
-      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
-    </header>
-    <div class="modal-body">
-      <p class="muted">Kaç dönüş otomatik oynansın?</p>
-      <div class="chip-row" id="auto-options"></div>
-      <button class="wide-btn danger" id="auto-stop">Otomatik Oyunu Durdur</button>
-    </div>
-  </div>
-</div>
-
-<div class="celebration" id="celebration" hidden>
-  <div class="celebration-inner">
-    <div class="celebration-title" id="celebration-title">BÜYÜK KAZANÇ</div>
-    <div class="celebration-amount" id="celebration-amount">0</div>
-    <div class="celebration-sub" id="celebration-sub">dokunarak devam et</div>
-  </div>
-</div>
-
-<div class="modal jackpot-modal" id="modal-jackpot" hidden>
-  <div class="modal-card">
-    <header class="modal-head">
-      <h2>🃏 Jackpot Cards</h2>
-    </header>
-    <div class="modal-body">
-      <p class="muted">Aynı türden 3 kart bulan jackpot'u kazanır!</p>
-      <div class="cards" id="jackpot-cards"></div>
-      <div class="jackpot-result" id="jackpot-result" hidden></div>
-      <button class="wide-btn" id="jackpot-close" hidden>Topla</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast" hidden></div>
+<div id="sheet-host"></div>
+<div id="toast-host"></div>
 
 <script src="js/env.js"></script>
-<script type="module" src="js/app.js"></script>
+<script type="module" src="js/site.js"></script>
 </body>
 </html>

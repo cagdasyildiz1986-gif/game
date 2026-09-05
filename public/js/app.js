@@ -205,26 +205,76 @@ async function celebrate(amount, bet, { free = false } = {}) {
 }
 
 /* ================== Jackpot bonusu ================== */
+/**
+ * 4x4 kart tahtasi. Oyuncu kart secer; secilen kareye SUNUCUNUN belirledigi
+ * siradaki kart gelir. Yani secim sunumsaldir, sonucu degistiremez -
+ * bu sayede istemci jackpot seviyesini manipule edemez.
+ */
 async function showJackpot(jackpotWin) {
   sfx.jackpot();
   const container = $('jackpot-cards');
-  container.innerHTML = '';
+  const gridSize = jackpotWin.gridSize || 16;
+  const draws = jackpotWin.draws;
+
+  container.innerHTML = Array.from(
+    { length: gridSize },
+    (_, i) => `<button class="card back" data-slot="${i}" aria-label="Kart aç"></button>`
+  ).join('');
   $('jackpot-result').hidden = true;
   $('jackpot-close').hidden = true;
+  $('jackpot-hint').hidden = false;
+  $('jackpot-tally').innerHTML = '';
   openModal('modal-jackpot');
 
-  for (const draw of jackpotWin.draws) {
-    const card = document.createElement('div');
-    const red = draw.suit === '♥' || draw.suit === '♦';
-    card.className = `card${red ? ' red' : ''}`;
-    card.textContent = draw.suit;
-    container.appendChild(card);
-    sfx.click();
-    await sleep(320);
-  }
+  const counts = {};
+  let revealed = 0;
 
+  const updateTally = () => {
+    $('jackpot-tally').innerHTML = state.config.jackpotLevels
+      .map((level) => {
+        const n = counts[level.id] || 0;
+        return `<span class="tally${n ? ' has' : ''}">${level.suit}
+          <b>${n}</b><i>/3</i></span>`;
+      })
+      .join('');
+  };
+  updateTally();
+
+  await new Promise((resolve) => {
+    container.addEventListener('click', function onPick(event) {
+      const card = event.target.closest('.card.back');
+      if (!card || revealed >= draws.length) return;
+
+      const draw = draws[revealed];
+      revealed += 1;
+      counts[draw.id] = (counts[draw.id] || 0) + 1;
+
+      const red = draw.suit === '♥' || draw.suit === '♦';
+      card.classList.remove('back');
+      card.classList.add('flip');
+      if (red) card.classList.add('red');
+      card.textContent = draw.suit;
+      card.disabled = true;
+      sfx.click();
+      updateTally();
+
+      if (counts[draw.id] >= 3) {
+        container.removeEventListener('click', onPick);
+        container.querySelectorAll('.card.back').forEach((c) => (c.disabled = true));
+        // Kazandiran turun kartlarini vurgula
+        [...container.children].forEach((c) => {
+          if (c.textContent === draw.suit) c.classList.add('winner');
+        });
+        setTimeout(resolve, 500);
+      }
+    });
+  });
+
+  sfx.bigWin();
+  $('jackpot-hint').hidden = true;
   const result = $('jackpot-result');
-  result.innerHTML = `${jackpotWin.suit} ${jackpotWin.name} JACKPOT<br><span style="font-size:28px">${fmt(jackpotWin.amount)}</span>`;
+  result.innerHTML = `${jackpotWin.suit} ${jackpotWin.name} JACKPOT<br>
+    <span style="font-size:30px">${fmt(jackpotWin.amount)}</span>`;
   result.hidden = false;
   $('jackpot-close').hidden = false;
 
@@ -543,7 +593,7 @@ function bindEvents() {
     backend.clearToken();
     const data = await backend.session('Misafir');
     renderPlayer(data.player);
-    renderJackpots(data.jackpots);
+    renderJackpots(data.jackpots || (await backend.jackpots()).jackpots);
     closeModal('modal-menu');
     toast('Yeni oturum başlatıldı');
   });
@@ -584,9 +634,14 @@ async function boot() {
   }
 
   try {
-    const [config, session] = await Promise.all([backend.config(), backend.session('Misafir')]);
+    // Oturum ucu artik jackpot havuzlarini icermiyor; ayri uctan alinir.
+    const [config, session, pools] = await Promise.all([
+      backend.config(),
+      backend.session('Misafir'),
+      backend.jackpots()
+    ]);
     state.config = config;
-    renderJackpots(session.jackpots);
+    renderJackpots(session.jackpots || pools.jackpots);
 
     $('loader').hidden = true;
     $('app').hidden = false;

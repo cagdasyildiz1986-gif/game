@@ -23,22 +23,33 @@ export function contribute(pools, totalBet) {
   return amount;
 }
 
-export function shouldTrigger(rng, totalBet, baseBet) {
-  // Yuksek bahis -> biraz daha yuksek tetiklenme sansi (adil oransal katki).
-  const scale = Math.min(4, Math.max(0.25, totalBet / baseBet));
-  return rng.float() < JACKPOT.triggerChance * scale;
+/**
+ * Tetiklenme sansi bahisle DOGRU ORANTILI olceklenir.
+ * Havuzlara katki da bahisle orantili oldugu icin, bu sekilde jackpot'un
+ * beklenen getirisi her bahis seviyesinde ayni kalir.
+ */
+export function shouldTrigger(rng, totalBet) {
+  return rng.float() < JACKPOT.triggerChance * (totalBet / JACKPOT.referenceBet);
 }
 
 /**
- * Kart oyununu oynar: agirlikli desteden kart cekilir,
- * ayni turden 3. kart cikinca o seviyenin jackpotu kazanilir.
+ * Kart oyununu oynar.
+ *
+ * ONEMLI - sonuc burada, sunucuda belirlenir. Istemciye acilacak KART SIRASI
+ * gonderilir; oyuncu 4x4 tahtada hangi kareye dokunursa dokunsun sirdaki bir
+ * sonraki kart acilir. Yani secim sunumsaldir, sonucu degistiremez.
+ * Bu, gercek slot bonus oyunlarinin calisma bicimidir ve istemcinin
+ * sonucu manipule etmesini imkansiz kilar.
+ *
+ * En kotu durumda her turden 2'ser kart (8 kart) acilir; 9. kart mutlaka
+ * bir turu 3'e tamamlar. Tahtadaki kalan kartlar kapali kalir.
  */
 export function playCardGame(rng) {
   const counts = Object.fromEntries(JACKPOT.levels.map((l) => [l.id, 0]));
   const totalWeight = JACKPOT.levels.reduce((s, l) => s + l.weight, 0);
   const draws = [];
 
-  for (let i = 0; i < 60; i += 1) {
+  for (let i = 0; i < 16; i += 1) {
     let roll = rng.float() * totalWeight;
     let picked = JACKPOT.levels[0];
     for (const level of JACKPOT.levels) {
@@ -48,15 +59,18 @@ export function playCardGame(rng) {
       }
       roll -= level.weight;
     }
+    // Bir tur zaten 3'e ulasamayacak sekilde doluysa tekrar cekme yapilmaz;
+    // 3'u bulan ilk tur kazanir.
     counts[picked.id] += 1;
     draws.push({ id: picked.id, suit: picked.suit, name: picked.name });
     if (counts[picked.id] >= 3) {
-      return { draws, levelId: picked.id, level: picked };
+      return { draws, levelId: picked.id, level: picked, gridSize: JACKPOT.cardGridSize };
     }
   }
-  // Teorik olarak ulasilamaz; guvenlik icin en dusuk seviye.
+
+  // Teorik olarak ulasilamaz (9 kartta mutlaka biter); guvenlik icin.
   const fallback = JACKPOT.levels[0];
-  return { draws, levelId: fallback.id, level: fallback };
+  return { draws, levelId: fallback.id, level: fallback, gridSize: JACKPOT.cardGridSize };
 }
 
 /** Kazanilan havuzu odeyip seed degerine sifirlar. */

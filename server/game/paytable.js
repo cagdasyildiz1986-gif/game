@@ -29,8 +29,16 @@ export const FREE_SPINS = {
 export const JACKPOT = {
   // Her spinde bahsin bu orani havuzlara aktarilir.
   contributionRate: 0.01,
-  // Bonus oyununun tetiklenme sansi (spin basina). Test icin JACKPOT_CHANCE ile ezilebilir.
-  triggerChance: Number(globalThis.process?.env?.JACKPOT_CHANCE || 0.0022),
+  /**
+   * Bonusun tetiklenme sansi REFERANS BAHISTE spin basinadir ve gercek bahisle
+   * dogru orantili olceklenir (bkz. shouldTrigger). Boylece jackpot'un RTP'ye
+   * katkisi bahis seviyesinden bagimsiz kalir: 2 kat bahis = 2 kat sans.
+   * Test icin JACKPOT_CHANCE ile ezilebilir.
+   */
+  triggerChance: Number(globalThis.process?.env?.JACKPOT_CHANCE || 0.0004),
+  referenceBet: 100,
+  /** Kart oyunu tahtasi: 4x4 = 16 kart. */
+  cardGridSize: 16,
   // Havuz seviyeleri: seed = sifirlandiginda baslangic degeri, share = katki payi
   levels: [
     { id: 'CLUB',    name: 'Sinek',  suit: '♣', seed: 100,    share: 0.34, weight: 44 },

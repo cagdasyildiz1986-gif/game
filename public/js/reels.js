@@ -26,7 +26,8 @@ export class ReelSet {
   #build() {
     this.root.innerHTML = Array.from(
       { length: REELS },
-      (_, r) => `<div class="reel" data-reel="${r}"><div class="strip"></div></div>`
+      (_, r) =>
+        `<div class="reel" data-reel="${r}"><div class="strip"></div><div class="flames"></div></div>`
     ).join('');
     this.reelEls = [...this.root.querySelectorAll('.reel')];
     this.stripEls = [...this.root.querySelectorAll('.strip')];
@@ -85,6 +86,7 @@ export class ReelSet {
 
     let scattersSoFar = 0;
     const animations = [];
+    let anticipationStarted = false;
 
     for (let r = 0; r < REELS; r += 1) {
       const current = this.grid[r];
@@ -96,10 +98,18 @@ export class ReelSet {
       const total = target.length + filler.length + current.length;
       const startY = -(total - ROWS) * cellH;
 
-      // Beklenti efekti: ilk makaralarda 2+ scatter varsa son makaralar yavaslar.
-      const anticipate = r >= 3 && scattersSoFar >= 2;
-      const duration = baseDuration + r * stagger + (anticipate ? 900 : 0);
-      if (anticipate) this.reelEls[r].classList.add('anticipate');
+      // Beklenti efekti: onceki makaralarda 2+ scatter varsa kalan makaralar
+      // belirgin sekilde yavaslar ve alevlenir. Her ek makarada gerilim artar.
+      const anticipate = r >= 2 && scattersSoFar >= 2;
+      const extra = anticipate ? 2000 + (r - 2) * 700 : 0;
+      const duration = baseDuration + r * stagger + extra;
+      if (anticipate) {
+        this.reelEls[r].classList.add('anticipate');
+        if (!anticipationStarted) {
+          anticipationStarted = true;
+          sfx.anticipation(extra + baseDuration);
+        }
+      }
 
       strip.style.transform = `translateY(${startY}px)`;
       this.reelEls[r].classList.add('spinning');
@@ -115,7 +125,7 @@ export class ReelSet {
           strip.style.transform = 'translateY(0px)';
           strip.innerHTML = target.map(cellHtml).join('');
           this.reelEls[r].classList.remove('spinning', 'anticipate');
-          sfx.reelStop(r);
+          sfx.reelStop(r, anticipate);
         })
       );
 

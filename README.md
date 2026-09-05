@@ -1,8 +1,15 @@
-# 🎰 Lucky Reels — Mobil Slot Oyunu
+# 🎰 AURUM — Sosyal Casino Platformu
 
-EGT ve Pragmatic Play tarzı 5x3, 20 sabit hatlı video slot. **Node.js** sunucu üzerinde
-çalışır, mobil öncelikli bir **PWA** olarak sunulur ve **Capacitor** ile Android/iOS
-uygulamasına dönüştürülebilir.
+Mobil öncelikli bir casino sitesi ve içindeki tam sürüm slot oyunu.
+**Node.js** sunucu üzerinde çalışır, **PWA** olarak sunulur ve **Capacitor** ile
+Android/iOS uygulamasına dönüştürülebilir.
+
+İki katman vardır:
+
+1. **Site (AURUM)** — lobi, 105 oyunluk katalog, kategoriler, arama, favoriler,
+   üyelik, kalıcı bakiye ve görev/puan sistemi.
+2. **Oyun (Lucky Reels)** — EGT ve Pragmatic Play tarzı 5x3, 20 sabit hatlı video slot;
+   bedava dönüşler, Jackpot Cards bonusu ve sunucu taraflı RNG.
 
 > ⚠️ Bu proje **eğlence amaçlı sanal kredi** ile çalışır. Gerçek para yatırma, çekme veya
 > bahis işlevi **yoktur**. Gerçek parayla oynatmak yasal olarak lisans gerektirir —
@@ -51,10 +58,15 @@ npm install && npm start   # http://localhost:3000
 
 | | |
 |---|---|
+| **Site** | 105 oyunluk katalog, 8 kategori, 8 sağlayıcı, arama, favoriler, görevler |
+| **Üyelik** | Kayıt/giriş (scrypt), kalıcı bakiye, misafirden hesaba yükseltme |
+| **Puan** | Satılmaz — yalnızca görevlerle ve oyun kazançlarıyla elde edilir |
 | **Oyun** | 5 makara × 3 satır, 20 sabit ödeme hattı |
 | **Semboller** | 8 ödeme sembolü + Yıldız (WILD) + Dolar (SCATTER) |
 | **Özellikler** | Bedava dönüşler (x3 çarpan, retrigger), Jackpot Cards bonusu (4 seviyeli progresif) |
 | **RTP** | ~%95,8 (10 milyon dönüşlük simülasyonla ölçülmüş — `npm run simulate`) |
+| **Jackpot** | 4 seviyeli progresif; bahisle orantılı tetiklenme (referans bahiste 1/2.500) |
+| **Kapaklar** | 105 oyunun kapağı vektörel üretilir — tek bayt görsel dosyası yok |
 | **Güvenlik** | Tüm matematik ve RNG **sunucuda**; istemci sadece sonucu canlandırır |
 | **Adalet** | HMAC-SHA256 tabanlı *provably fair* (sunucu tohumu + istemci tohumu + nonce) |
 | **Arayüz** | Mobil öncelikli, dokunmatik, turbo + otomatik oyun, offline kabuk (PWA) |
@@ -83,6 +95,9 @@ uygulama tam ekran PWA olarak açılır.
 server/
   index.js              Express sunucusu + statik dosya servisi
   config.js             Port, başlangıç kredisi, bahis seviyeleri
+  site/
+    catalog.js          Oyun kataloğu, kategoriler, sağlayıcılar, arama
+    tasks.js            Görev tanımları, ilerleme ve ödül mantığı
   game/
     symbols.js          Sembol tanımları (wild / scatter)
     paylines.js         20 sabit ödeme hattı
@@ -94,8 +109,13 @@ server/
   routes/game.js        REST API
   store/memory.js       Oyuncu deposu (bellek + JSON dosyası)
 public/
-  index.html            Arayüz iskeleti
-  css/style.css         Mobil öncelikli tema
+  index.html            Site (lobi) iskeleti
+  game.html             Slot oyunu sayfası
+  css/site.css          Site tasarım sistemi
+  css/style.css         Oyun teması
+  js/site.js            Lobi yönlendiricisi ve görünümleri
+  js/cover.js           Oyun kapaklarının vektörel üreticisi
+  js/icons.js           Arayüz ikonları
   js/app.js             Oyun akışı ve arayüz mantığı
   js/reels.js           Makara animasyonu (Web Animations API)
   js/symbols.js         SVG sembol sprite'ı
@@ -110,6 +130,29 @@ tools/build-demo.js     GitHub Pages demo derlemesi (dist/)
 .devcontainer/          Codespaces yapılandırması
 capacitor.config.json   Native uygulama yapılandırması
 ```
+
+---
+
+## Site
+
+**Sayfalar** (hash yönlendirme): ana sayfa, kategori, arama, oyun detayı, görevler,
+profil ve bilgi sayfaları (nasıl çalışır, adalet, sorumlu oyun, koşullar, gizlilik).
+
+**Kategoriler:** Popüler, Yeni, Slot, Masa Oyunları, Rulet, Bonus Buy, Jackpot,
+Hızlı Oyunlar — ayrıca Favoriler.
+
+**Görev sistemi:** Günlük görevler (giriş, 50 dönüş, 3 oyun keşfi, 20x kazanç) her gün
+sıfırlanır; kilometre taşları (ilk dönüş, kayıt, ilk bonus turu, 1.000 dönüş, jackpot)
+kalıcıdır. Ödüller `Topla` ile bakiyeye eklenir.
+
+**Oyun kapakları:** Katalogda 105 oyun var ve hiçbiri için görsel dosyası yok.
+Her oyunun bir **palet** (16 seçenek) ve **motif**i (24 seçenek) vardır;
+`public/js/cover.js` bunlardan arka plan, ışık huzmeleri, motif ve altın konturlu
+başlık kilidi olan bir SVG üretir.
+
+**Not:** Şu an tam olarak oynanabilen oyun Lucky Reels'tir. Katalogdaki diğer oyunlar
+site yapısını, kategori akışını ve arama deneyimini göstermek için durur; oyun
+detay sayfasında bu açıkça belirtilir.
 
 ---
 
@@ -180,9 +223,18 @@ Tüm istekler `Authorization: Bearer <token>` başlığı ister (`/config`, `/se
 
 | Yöntem | Yol | Açıklama |
 |---|---|---|
+| `POST` | `/api/auth/session` | Oturum aç / devam ettir (misafir) → `token` |
+| `POST` | `/api/auth/register` | Kayıt (misafir hesabı yükseltir, bakiye korunur) |
+| `POST` | `/api/auth/login` | Giriş |
+| `GET` | `/api/auth/me` | Hesap durumu |
+| `GET` | `/api/site/home` | Lobi: kategoriler, vitrin rayları, jackpot havuzları |
+| `GET` | `/api/site/games` | Kategori/sağlayıcı/sıralama ile oyun listesi |
+| `GET` | `/api/site/search` | Oyun arama |
+| `GET` | `/api/site/game/:id` | Oyun detayı + benzerleri |
+| `POST` | `/api/site/favorite/:id` | Favori ekle/çıkar |
+| `GET` | `/api/site/tasks` | Görevler ve ilerleme |
+| `POST` | `/api/site/tasks/:id/claim` | Görev ödülünü topla |
 | `GET` | `/api/config` | Semboller, ödeme tablosu, hatlar, bahis seviyeleri |
-| `POST` | `/api/session` | Oturum aç / devam ettir → `token` |
-| `GET` | `/api/state` | Oyuncu durumu + jackpot havuzları |
 | `POST` | `/api/bet` | Bahis seviyesi değiştir |
 | `POST` | `/api/spin` | Dönüş yap → grid, kazançlar, bakiye |
 | `GET` | `/api/jackpots` | Güncel progresif havuzlar |
@@ -279,10 +331,13 @@ izin verilen ülkeler için mümkündür.
 Bu sürüm tek oyunlu, tek sunuculu bir temeldir. Bir "oyun sitesi" hâline getirmek için
 sonraki adımlar:
 
-- [ ] Kullanıcı hesapları (e-posta / telefon doğrulama) ve gerçek veritabanı (Postgres)
-- [ ] Oyun lobisi (birden çok slot, arama, favoriler) — `server/game/` modülleri
-      oyun başına klasörlenerek çoğaltılabilir
-- [ ] Günlük bonus, seviye/XP, görevler, liderlik tablosu
+- [x] Oyun lobisi (katalog, kategoriler, arama, favoriler)
+- [x] Kullanıcı hesapları ve kalıcı bakiye
+- [x] Görev/puan sistemi
+- [ ] Gerçek veritabanı (Postgres) — `server/store/memory.js` yerine adaptör
+- [ ] E-posta / telefon doğrulama, parola sıfırlama
+- [ ] Daha fazla oynanabilir oyun (rulet ve blackjack en yakın adaylar)
+- [ ] Seviye/XP, liderlik tablosu, turnuvalar
 - [ ] Sunucu tarafı oturum geçmişi ve dönüş logları (denetlenebilirlik)
 - [ ] Push bildirim (Capacitor Push Notifications)
 - [ ] Çoklu dil desteği

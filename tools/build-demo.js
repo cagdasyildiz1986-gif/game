@@ -16,6 +16,8 @@ const dist = path.join(root, 'dist');
 fs.rmSync(dist, { recursive: true, force: true });
 fs.cpSync(path.join(root, 'public'), dist, { recursive: true });
 fs.cpSync(path.join(root, 'server', 'game'), path.join(dist, 'engine'), { recursive: true });
+// Site modulleri (katalog, gorevler) demo arka ucu tarafindan da kullanilir.
+fs.cpSync(path.join(root, 'server', 'site'), path.join(dist, 'engine', 'site'), { recursive: true });
 
 // rng.js node:crypto kullanir; tarayici surumunde gerekmez.
 fs.rmSync(path.join(dist, 'engine', 'rng.js'), { force: true });

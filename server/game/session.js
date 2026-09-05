@@ -49,7 +49,7 @@ export function applySpin({ player, pools, rng, bet, betLevels }) {
 
   // Jackpot Cards bonusu yalnizca ucretli spinlerde tetiklenir.
   let jackpotWin = null;
-  if (!isFree && jackpot.shouldTrigger(rng, stake, betLevels[0])) {
+  if (!isFree && jackpot.shouldTrigger(rng, stake)) {
     const game = jackpot.playCardGame(rng);
     const claimed = jackpot.claim(pools, game.levelId);
     jackpotWin = {
@@ -57,6 +57,7 @@ export function applySpin({ player, pools, rng, bet, betLevels }) {
       name: claimed.level.name,
       suit: claimed.level.suit,
       draws: game.draws,
+      gridSize: game.gridSize,
       amount: round2(claimed.amount)
     };
   }

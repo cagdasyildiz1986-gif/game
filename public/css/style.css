@@ -40,6 +40,7 @@ body {
 }
 
 #sprite-host { position: absolute; width: 0; height: 0; overflow: hidden; }
+#btn-back { text-decoration: none; font-size: 24px; line-height: 1; padding-bottom: 4px; }
 #sprite { position: absolute; width: 0; height: 0; }
 
 /* ---------- Yukleme ekrani ---------- */
@@ -215,8 +216,77 @@ body {
   background: linear-gradient(180deg, rgba(0,0,0,.55), transparent 22%, transparent 78%, rgba(0,0,0,.55));
 }
 .reel.spinning .strip { filter: blur(1.4px); }
-.reel.anticipate { box-shadow: inset 0 0 0 2px var(--gold); animation: antic .35s ease-in-out infinite alternate; }
-@keyframes antic { to { background: #2a1a4d; } }
+/* ---- Scatter beklenti efekti: alevlenen makara ---- */
+.flames {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2;
+  transition: opacity .25s ease;
+}
+.reel.anticipate {
+  box-shadow:
+    inset 0 0 0 2px #ffb020,
+    inset 0 0 26px rgba(255, 120, 0, .55),
+    0 0 22px rgba(255, 110, 0, .6);
+  z-index: 3;
+  animation: anticGlow .28s ease-in-out infinite alternate;
+}
+@keyframes anticGlow {
+  to {
+    box-shadow:
+      inset 0 0 0 3px #ffe08a,
+      inset 0 0 40px rgba(255, 160, 20, .8),
+      0 0 34px rgba(255, 140, 0, .85);
+  }
+}
+.reel.anticipate .flames { opacity: 1; }
+
+/* Alevler: alttan yukari yukselen, birbirinden bagimsiz hizlarda uc katman */
+.flames::before,
+.flames::after {
+  content: '';
+  position: absolute;
+  left: -12%;
+  right: -12%;
+  bottom: -18%;
+  height: 78%;
+  background:
+    radial-gradient(46% 58% at 22% 100%, rgba(255, 232, 120, .95), rgba(255, 132, 0, .55) 42%, transparent 72%),
+    radial-gradient(40% 68% at 52% 100%, rgba(255, 255, 190, .9), rgba(255, 90, 0, .5) 40%, transparent 74%),
+    radial-gradient(44% 54% at 82% 100%, rgba(255, 214, 90, .9), rgba(255, 70, 0, .5) 44%, transparent 72%);
+  filter: blur(3px);
+  mix-blend-mode: screen;
+  animation: flicker .38s steps(3, end) infinite;
+}
+.flames::after {
+  height: 55%;
+  filter: blur(6px);
+  opacity: .85;
+  animation: flicker .53s steps(4, end) infinite reverse;
+}
+@keyframes flicker {
+  0%   { transform: translateY(4%) scaleY(.92) scaleX(1); }
+  33%  { transform: translateY(-2%) scaleY(1.08) scaleX(.95); }
+  66%  { transform: translateY(1%) scaleY(.98) scaleX(1.05); }
+  100% { transform: translateY(-4%) scaleY(1.12) scaleX(.97); }
+}
+
+/* Beklenti sirasinda tum makine hafifce titresir */
+.frame:has(.reel.anticipate) {
+  animation: shake .12s linear infinite;
+  border-color: transparent;
+  background:
+    linear-gradient(180deg, #5a3406, #2a1804) padding-box,
+    linear-gradient(180deg, #ffd76a, #ff8a00) border-box;
+}
+@keyframes shake {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-1px, 1px); }
+  50% { transform: translate(1px, -1px); }
+  75% { transform: translate(1px, 1px); }
+}
 
 .strip { will-change: transform; }
 
@@ -470,20 +540,47 @@ body {
 @keyframes zoomIn { from { transform: scale(.5); opacity: 0; } }
 
 /* ---------- Jackpot kartlari ---------- */
+.tally-row { display: flex; justify-content: center; gap: 8px; margin: 10px 0 4px; }
+.tally {
+  display: flex; align-items: baseline; gap: 2px;
+  font-size: 15px; padding: 4px 9px; border-radius: 9px;
+  background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.1);
+  color: var(--muted);
+}
+.tally b { font-size: 14px; color: var(--text); }
+.tally i { font-size: 10px; font-style: normal; color: var(--muted); }
+.tally.has { border-color: rgba(246,201,69,.5); color: var(--gold-2); }
+
 .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
 .card {
   aspect-ratio: 2/3;
-  border-radius: 8px;
+  border: none;
+  padding: 0;
+  border-radius: 9px;
   display: grid;
   place-items: center;
-  font-size: clamp(18px, 7vw, 30px);
-  background: linear-gradient(160deg, #fdfdfd, #d8d8e8);
+  font-size: clamp(20px, 7vw, 32px);
+  background: linear-gradient(160deg, #fdfdfd, #d3d3e4);
   color: #111;
   box-shadow: 0 4px 10px rgba(0,0,0,.5);
-  animation: flip .35s ease;
+  cursor: default;
 }
+.card.flip { animation: flip .35s cubic-bezier(.3,1.4,.5,1); }
 .card.red { color: var(--red); }
-.card.back { background: repeating-linear-gradient(45deg, #3b1d6e, #3b1d6e 6px, #24124a 6px, #24124a 12px); }
+.card.back {
+  background:
+    repeating-linear-gradient(45deg, #46228a, #46228a 5px, #2a1456 5px, #2a1456 10px);
+  border: 1px solid rgba(246,201,69,.28);
+  cursor: pointer;
+}
+.card.back:not(:disabled):active { transform: scale(.94); }
+.card.back:disabled { opacity: .45; cursor: default; }
+.card.winner {
+  outline: 2px solid var(--gold);
+  box-shadow: 0 0 18px rgba(246,201,69,.75);
+  animation: winnerPulse .6s ease-in-out infinite alternate;
+}
+@keyframes winnerPulse { to { transform: scale(1.06); } }
 @keyframes flip { from { transform: rotateY(90deg) scale(.8); opacity: 0; } }
 .jackpot-result {
   text-align: center; padding: 12px;

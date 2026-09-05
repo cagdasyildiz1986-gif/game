@@ -13,6 +13,16 @@ import { createPools, JACKPOT_LEVELS } from '../engine/jackpot.js';
 import { PAYTABLE, SCATTER_PAY, FREE_SPINS } from '../engine/paytable.js';
 import { PAYLINES } from '../engine/paylines.js';
 import { SYMBOLS, WILD, SCATTER } from '../engine/symbols.js';
+import {
+  CATEGORIES,
+  PROVIDERS,
+  GAMES,
+  GAME_BY_ID,
+  categoryCounts,
+  searchGames as catalogSearch
+} from '../engine/site/catalog.js';
+import { initialTaskState, taskView, claim as claimTask, advance, applySpinToTasks, rollDaily }
+  from '../engine/site/tasks.js';
 
 const STORAGE_KEY = 'lucky-reels-demo-state';
 const BET_LEVELS = [20, 40, 100, 200, 400, 1000, 2000];
@@ -36,10 +46,15 @@ function freshState() {
     player: {
       id: 'demo',
       name: 'Misafir',
+      username: null,
+      guest: true,
       balance: START_BALANCE,
-      bet: 100,
+      bet: 20,
       freeSpins: { remaining: 0, total: 0, multiplier: 1, win: 0 },
       stats: { spins: 0, wagered: 0, won: 0, biggestWin: 0 },
+      favorites: [],
+      recent: [],
+      tasks: initialTaskState(),
       lastSpinAt: 0
     },
     pools: createPools()
@@ -80,9 +95,37 @@ function publicPlayer() {
       won: round2(p.stats.won),
       biggestWin: round2(p.stats.biggestWin)
     },
+    favorites: p.favorites,
+    recent: p.recent,
+    username: p.username,
+    guest: p.guest,
     fair: { serverSeedHash: 'demo', clientSeed: 'demo', nonce: p.stats.spins }
   };
 }
+
+/* ═══════ Katalog yardimcilari (sunucudaki site rotalarinin aynisi) ═══════ */
+
+function gameView(game) {
+  return {
+    id: game.id,
+    name: game.name,
+    provider: game.provider,
+    categories: game.categories,
+    palette: game.palette,
+    motif: game.motif,
+    volatility: game.volatility,
+    rtp: game.rtp,
+    playable: game.playable,
+    engine: game.engine,
+    isNew: game.isNew,
+    isHot: game.isHot,
+    hasJackpot: game.hasJackpot,
+    online: game.online,
+    favorite: state.player.favorites.includes(game.id)
+  };
+}
+
+const byPopularity = (a, b) => b.popularity - a.popularity;
 
 function jackpotView() {
   return JACKPOT_LEVELS.map((level) => ({
@@ -109,13 +152,15 @@ export const demoApi = {
       freeSpins: FREE_SPINS,
       paylines: PAYLINES,
       betLevels: BET_LEVELS,
-      defaultBet: 100,
+      defaultBet: 20,
       reels: 5,
       rows: 3,
       jackpotLevels: JACKPOT_LEVELS.map(({ id, name, suit }) => ({ id, name, suit }))
     };
   },
   async session() {
+    advance(state.player.tasks, 'daily-login', 1);
+    persist();
     return { token: 'demo', player: publicPlayer(), jackpots: jackpotView() };
   },
   async state() {
@@ -139,11 +184,138 @@ export const demoApi = {
       betLevels: BET_LEVELS
     });
     if (error) throw new Error(error);
+    applySpinToTasks(state.player.tasks, {
+      spin,
+      bet: state.player.bet,
+      totalSpins: state.player.stats.spins
+    });
     persist();
     return { spin: { ...spin, nonce: state.player.stats.spins }, player: publicPlayer(), jackpots: jackpotView() };
   },
   async jackpots() {
     return { jackpots: jackpotView() };
+  },
+
+  /* ---- Hesap (demo: yerel) ---- */
+  async me() {
+    return { player: publicPlayer() };
+  },
+  async register(username, password) {
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+      throw new Error('Kullanıcı adı 3-20 karakter olmalı; harf, rakam ve _ kullanın.');
+    }
+    if (!password || password.length < 6) throw new Error('Parola en az 6 karakter olmalı.');
+    // Demo modunda sunucu yok: hesap yalnizca bu tarayicida saklanir.
+    state.player.username = username;
+    state.player.name = username;
+    state.player.guest = false;
+    advance(state.player.tasks, 'register', 1);
+    persist();
+    return { token: 'demo', player: publicPlayer() };
+  },
+  async login(username, password) {
+    if (!state.player.username) throw new Error('Demo modunda önce kayıt olun.');
+    if (username !== state.player.username) throw new Error('Kullanıcı adı veya parola hatalı.');
+    if (!password || password.length < 6) throw new Error('Kullanıcı adı veya parola hatalı.');
+    return { token: 'demo', player: publicPlayer() };
+  },
+  async logout() {
+    state = freshState();
+    persist();
+  },
+
+  /* ---- Site ---- */
+  async home() {
+    const pick = (filter, sort, limit) => GAMES.filter(filter).sort(sort).slice(0, limit).map(gameView);
+    const rows = [
+      { id: 'oynanabilir', title: 'Şimdi Oynanabilir', subtitle: 'Tam sürüm oyunlar',
+        games: pick((g) => g.playable, byPopularity, 12) },
+      { id: 'populer', title: 'Popüler Oyunlar',
+        games: pick((g) => g.categories.includes('populer'), byPopularity, 12) },
+      { id: 'yeni', title: 'Yeni Eklenenler',
+        games: pick((g) => g.categories.includes('yeni'), (a, b) => a.order - b.order, 12) },
+      { id: 'jackpot', title: 'Jackpot Oyunları',
+        games: pick((g) => g.categories.includes('jackpot'), byPopularity, 12) },
+      { id: 'masa', title: 'Masa Oyunları',
+        games: pick((g) => g.categories.includes('masa'), byPopularity, 12) },
+      { id: 'bonus-buy', title: 'Bonus Buy',
+        games: pick((g) => g.categories.includes('bonus-buy'), byPopularity, 12) }
+    ];
+    if (state.player.recent.length) {
+      const recent = state.player.recent.map((id) => GAME_BY_ID.get(id)).filter(Boolean).map(gameView);
+      if (recent.length) rows.unshift({ id: 'son', title: 'Son Oynadıkların', games: recent });
+    }
+    const counts = categoryCounts();
+    return {
+      categories: CATEGORIES.map((c) => ({ ...c, count: counts[c.id] })),
+      providers: PROVIDERS,
+      rows,
+      jackpots: jackpotView(),
+      totalGames: GAMES.length
+    };
+  },
+  async games({ category, provider, sort = 'populer', perPage = 60, page = 1 } = {}) {
+    let list = GAMES;
+    if (category && category !== 'tumu') {
+      list = category === 'favoriler'
+        ? list.filter((g) => state.player.favorites.includes(g.id))
+        : list.filter((g) => g.categories.includes(category));
+    }
+    if (provider) list = list.filter((g) => g.provider === provider);
+    const sorted = [...list];
+    if (sort === 'ad') sorted.sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+    else if (sort === 'rtp') sorted.sort((a, b) => b.rtp - a.rtp);
+    else if (sort === 'yeni') sorted.sort((a, b) => Number(b.isNew) - Number(a.isNew) || a.order - b.order);
+    else sorted.sort(byPopularity);
+    const start = (page - 1) * perPage;
+    return { total: sorted.length, page, perPage, games: sorted.slice(start, start + perPage).map(gameView) };
+  },
+  async searchGames(q) {
+    const results = catalogSearch(q).slice(0, 40);
+    return { query: q, total: results.length, games: results.map(gameView) };
+  },
+  async gameDetail(id) {
+    const game = GAME_BY_ID.get(id);
+    if (!game) throw new Error('Oyun bulunamadı.');
+    const similar = GAMES.filter(
+      (g) => g.id !== game.id && g.categories.some((c) => game.categories.includes(c))
+    ).sort(byPopularity).slice(0, 8).map(gameView);
+    return { game: gameView(game), similar };
+  },
+  async openGame(id) {
+    const game = GAME_BY_ID.get(id);
+    if (!game) throw new Error('Oyun bulunamadı.');
+    const p = state.player;
+    p.recent = [game.id, ...p.recent.filter((x) => x !== game.id)].slice(0, 12);
+    rollDaily(p.tasks);
+    if (!p.tasks.openedToday || p.tasks.openedToday.day !== p.tasks.day) {
+      p.tasks.openedToday = { day: p.tasks.day, ids: [] };
+    }
+    if (!p.tasks.openedToday.ids.includes(game.id)) {
+      p.tasks.openedToday.ids.push(game.id);
+      advance(p.tasks, 'daily-games', p.tasks.openedToday.ids.length, 'set');
+    }
+    persist();
+    return { ok: true, player: publicPlayer() };
+  },
+  async toggleFavorite(id) {
+    const favorites = state.player.favorites;
+    const index = favorites.indexOf(id);
+    if (index >= 0) favorites.splice(index, 1);
+    else favorites.push(id);
+    advance(state.player.tasks, 'favorites', favorites.length, 'set');
+    persist();
+    return { favorite: index < 0, favorites };
+  },
+  async tasks() {
+    return { tasks: taskView(state.player.tasks), player: publicPlayer() };
+  },
+  async claimTask(id) {
+    const result = claimTask(state.player.tasks, id);
+    if (result.error) throw new Error(result.error);
+    state.player.balance += result.reward;
+    persist();
+    return { reward: result.reward, tasks: taskView(state.player.tasks), player: publicPlayer() };
   },
   async setClientSeed() {
     throw new Error('Doğrulanabilir adalet yalnızca sunucu modunda çalışır.');

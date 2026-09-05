@@ -32,22 +32,74 @@ async function request(path, { method = 'GET', body } = {}) {
   return data;
 }
 
+function setToken(value) {
+  token = value;
+  if (value) localStorage.setItem(TOKEN_KEY, value);
+  else localStorage.removeItem(TOKEN_KEY);
+}
+
 export const api = {
   get token() {
     return token;
   },
   clearToken() {
-    token = null;
-    localStorage.removeItem(TOKEN_KEY);
+    setToken(null);
   },
   async config() {
     return request('/config');
   },
   async session(name) {
-    const data = await request('/session', { method: 'POST', body: { token, name } });
-    token = data.token;
-    localStorage.setItem(TOKEN_KEY, token);
+    const data = await request('/auth/session', { method: 'POST', body: { token, name } });
+    setToken(data.token);
     return data;
+  },
+
+  /* ---- Hesap ---- */
+  async me() {
+    return request('/auth/me');
+  },
+  async register(username, password) {
+    const data = await request('/auth/register', { method: 'POST', body: { username, password } });
+    setToken(data.token);
+    return data;
+  },
+  async login(username, password) {
+    const data = await request('/auth/login', { method: 'POST', body: { username, password } });
+    setToken(data.token);
+    return data;
+  },
+  async logout() {
+    await request('/auth/logout', { method: 'POST' }).catch(() => {});
+    setToken(null);
+  },
+
+  /* ---- Site ---- */
+  async home() {
+    return request('/site/home');
+  },
+  async games(params = {}) {
+    const query = new URLSearchParams(
+      Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== '')
+    );
+    return request(`/site/games?${query}`);
+  },
+  async searchGames(q) {
+    return request(`/site/search?q=${encodeURIComponent(q)}`);
+  },
+  async gameDetail(id) {
+    return request(`/site/game/${encodeURIComponent(id)}`);
+  },
+  async openGame(id) {
+    return request(`/site/game/${encodeURIComponent(id)}/open`, { method: 'POST' });
+  },
+  async toggleFavorite(id) {
+    return request(`/site/favorite/${encodeURIComponent(id)}`, { method: 'POST' });
+  },
+  async tasks() {
+    return request('/site/tasks');
+  },
+  async claimTask(id) {
+    return request(`/site/tasks/${encodeURIComponent(id)}/claim`, { method: 'POST' });
   },
   async state() {
     return request('/state');

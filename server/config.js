@@ -7,7 +7,7 @@ export const config = {
 
   /** Toplam bahis seviyeleri (20 hat sabit). */
   betLevels: [20, 40, 100, 200, 400, 1000, 2000],
-  defaultBet: 100,
+  defaultBet: 20,
 
   /** Oyuncu verisinin diske yazilacagi dosya (bos ise sadece bellek). */
   dataFile: process.env.DATA_FILE || 'data/players.json',

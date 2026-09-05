@@ -1,14 +1,19 @@
 /* Basit uygulama-kabugu onbellegi - offline acilis ve hizli yukleme icin. */
-const CACHE = 'lucky-reels-v1';
+const CACHE = 'aurum-v2';
 // Goreli yollar: uygulama hem kok dizinde (Node sunucusu) hem de
 // alt dizinde (GitHub Pages: /<repo>/) ayni sekilde calisir.
 const SHELL = [
   './',
   './index.html',
+  './game.html',
+  './css/site.css',
   './css/style.css',
-  './js/app.js',
+  './js/site.js',
   './js/api.js',
   './js/env.js',
+  './js/icons.js',
+  './js/cover.js',
+  './js/app.js',
   './js/audio.js',
   './js/reels.js',
   './js/symbols.js',
