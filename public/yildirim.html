@@ -4,14 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>YILDIRIM · Göklerin Öfkesi · AURUM</title>
-<meta name="description" content="6x5 · hat yok · tumble · çarpan küreleri. Sanal kredi ile oynanır, gerçek para yoktur.">
-<meta name="theme-color" content="#0a0620">
+<meta name="description" content="6x5 · hat yok · tumble · yıldırım çarpanları. Sanal kredi ile oynanır, gerçek para yoktur.">
+<meta name="theme-color" content="#0a1130">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="preload" as="image" href="img/yildirim-bg.webp">
+<link rel="preload" as="image" href="img/yildirim-logo.webp">
 <link rel="stylesheet" href="css/yildirim.css">
 <script>
   try { document.documentElement.dataset.theme = localStorage.getItem('aurum-theme') || 'light'; } catch (e) {}
@@ -20,9 +22,10 @@
 <body class="storm">
 
 <div id="sprite-host" aria-hidden="true"></div>
+<div class="stage-bg" aria-hidden="true"></div>
 
 <div id="loader" class="loader">
-  <div class="loader-logo">YILDIRIM</div>
+  <img class="loader-logo-img" src="img/yildirim-logo.webp" alt="YILDIRIM · Göklerin Öfkesi">
   <div class="loader-bar"><i></i></div>
   <p class="loader-note">Sanal kredi ile oynanır · Gerçek para yoktur</p>
 </div>
@@ -30,53 +33,83 @@
 <div id="app" class="app" hidden>
 
   <header class="topbar">
-    <a class="icon-btn" href="./#/oyun/yildirim-goklerin-ofkesi" aria-label="Lobiye dön" id="btn-back">‹</a>
-    <button class="icon-btn" id="btn-menu" aria-label="Menü">☰</button>
+    <button class="glass-btn" id="btn-menu" aria-label="Menü">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"
+        stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
+    </button>
 
-    <div class="storm-hud" id="storm-hud">
-      <div class="mode-chip" id="mode-chip">6×5 · <em>HAT YOK</em> · TUMBLE</div>
-      <div class="hud-item" id="hud-mult-wrap" hidden>
-        <span class="hud-label">TOPLAM ÇARPAN</span>
-        <span class="hud-value" id="hud-mult">x1</span>
-      </div>
-      <div class="hud-item" id="hud-free-wrap" hidden>
-        <span class="hud-label">BEDAVA</span>
-        <span class="hud-value" id="hud-free">0</span>
-      </div>
+    <button class="mode-pill" id="mode-pill">
+      <span id="mode-text">6 × 5 · TUMBLE</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"
+        stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+        stroke-linejoin="round" fill="none"/></svg>
+    </button>
+
+    <div class="topbar-right">
+      <button class="glass-btn" id="btn-sound" aria-label="Ses">
+        <svg viewBox="0 0 24 24" aria-hidden="true" id="icon-sound"></svg>
+      </button>
+      <button class="glass-btn" id="btn-settings" aria-label="Ayarlar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path
+          d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" fill="none"
+          stroke="currentColor" stroke-width="2"/><path
+          d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.5-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1l-.3-2.6h-4l-.3 2.6a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.4 2.4-1a7.6 7.6 0 0 0 1.7 1l.3 2.6h4l.3-2.6a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4z"
+          fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+      </button>
     </div>
-
-    <button class="icon-btn" id="btn-sound" aria-label="Ses">🔊</button>
   </header>
 
-  <div class="demo-badge" id="demo-badge" hidden>DEMO · oyun motoru tarayıcıda çalışıyor</div>
-
   <main class="stage">
-    <div class="logo storm-logo">
-      <span class="logo-bolt" aria-hidden="true"></span>
-      <b>YILDIRIM</b>
-      <i>GÖKLERİN ÖFKESİ</i>
+    <div class="brand">
+      <img class="brand-logo" src="img/yildirim-logo.webp" alt="YILDIRIM · Göklerin Öfkesi">
     </div>
 
+    <div class="demo-badge" id="demo-badge" hidden>DEMO · OYUN MOTORU TARAYICIDA ÇALIŞIYOR</div>
+
     <div class="machine">
+    <!-- Şimşek katmanı çerçevenin DIŞINDA durur ki gökten inebilsin -->
+    <svg class="bolt-layer" id="bolts" aria-hidden="true"></svg>
+
+    <!-- Yan düğmeler çerçevenin üst köşelerinde durur -->
+    <button class="side-btn side-left" id="btn-daily">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path
+        d="M3 11h18v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1zM2 7h20v4H2zM12 7v14M12 7S9.5 3 7.5 3 5 6 8 7zM12 7s2.5-4 4.5-4S19 6 16 7z"
+        fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+      <b>GÜNLÜK<br>ÖDÜL</b>
+    </button>
+    <button class="side-btn side-right" id="btn-tournament">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path
+        d="M7 4h10v5a5 5 0 0 1-10 0zM7 5H4v2a4 4 0 0 0 3 3.9M17 5h3v2a4 4 0 0 1-3 3.9M10 14h4l.6 4H9.4zM8 20h8"
+        fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"
+        stroke-linecap="round"/></svg>
+      <b>TURNUVA</b>
+    </button>
+
+      <!-- Oymalı altın çerçeve -->
       <div class="frame">
-        <div class="sky" aria-hidden="true">
-          <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
-        </div>
-        <svg class="bolt-layer" id="bolts" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
-        <div class="grid" id="grid"></div>
-        <div class="fx" id="fx"></div>
-        <div class="collector" id="collector" hidden>
-          <div class="collector-inner">
-            <span class="collector-label">TOPLAM ÇARPAN</span>
-            <span class="collector-value" id="collector-value">x0</span>
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <span class="corner bl"></span><span class="corner br"></span>
+        <span class="edge-bolt left"></span><span class="edge-bolt right"></span>
+
+        <div class="board">
+          <div class="grid" id="grid"></div>
+          <div class="fx" id="fx"></div>
+          <div class="collector" id="collector" hidden>
+            <div class="collector-inner">
+              <span class="collector-label">TOPLAM ÇARPAN</span>
+              <span class="collector-value" id="collector-value">x0</span>
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- Kanatlı kazanç bandı -->
       <div class="winbar">
+        <span class="wing left" aria-hidden="true"></span>
         <span class="winbar-label">KAZANÇ</span>
         <span class="winbar-value" id="win-value">0</span>
         <span class="winbar-info" id="win-info"></span>
+        <span class="wing right" aria-hidden="true"></span>
       </div>
     </div>
   </main>
@@ -85,28 +118,67 @@
     <div class="meters">
       <div class="meter">
         <span class="meter-label">BAKİYE</span>
-        <span class="meter-value" id="balance">0</span>
+        <span class="meter-row">
+          <svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="8" rx="8" ry="3.4"
+            fill="url(#coinGrad)"/><path d="M4 8v5c0 1.9 3.6 3.4 8 3.4s8-1.5 8-3.4V8"
+            fill="url(#coinGrad)" stroke="#7a4a04" stroke-width="1"/><ellipse cx="12" cy="8" rx="8" ry="3.4"
+            fill="none" stroke="#7a4a04" stroke-width="1"/>
+            <defs><linearGradient id="coinGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ffe89a"/><stop offset="100%" stop-color="#d99a18"/>
+            </linearGradient></defs></svg>
+          <b id="balance">0</b>
+        </span>
       </div>
       <div class="meter">
         <span class="meter-label">BAHİS</span>
-        <span class="meter-value" id="bet">0</span>
+        <span class="meter-row bet-row">
+          <button class="step-btn" id="bet-down" aria-label="Bahis azalt">−</button>
+          <b id="bet">0</b>
+          <button class="step-btn" id="bet-up" aria-label="Bahis artır">+</button>
+        </span>
       </div>
     </div>
 
     <div class="pad">
-      <div class="bet-controls">
-        <button class="round-btn" id="bet-down" aria-label="Bahis azalt">−</button>
-        <button class="round-btn" id="bet-up" aria-label="Bahis artır">+</button>
-      </div>
-
-      <button class="spin-btn" id="spin" aria-label="Çevir">
-        <span class="spin-inner"><span id="spin-label">ÇEVİR</span></span>
+      <button class="pad-btn" id="btn-turbo">
+        <span class="pad-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path
+          d="M13 2 4 14h6l-1 8 9-12h-6z" fill="currentColor"/></svg></span>
+        <i>TURBO</i>
       </button>
 
-      <div class="aux-controls">
-        <button class="round-btn" id="btn-turbo" aria-label="Turbo mod">⚡</button>
-        <button class="round-btn" id="btn-auto" aria-label="Otomatik oyun">A</button>
-      </div>
+      <button class="pad-btn" id="btn-bet">
+        <span class="pad-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+          <ellipse cx="12" cy="6" rx="7" ry="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M5 6v4c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6V6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M5 12v4c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        </svg></span>
+        <i>OTOMATİK</i>
+      </button>
+
+      <button class="spin-btn" id="spin" aria-label="Çevir">
+        <span class="spin-ring"></span>
+        <span class="spin-inner">
+          <svg class="spin-arrows" viewBox="0 0 48 48" aria-hidden="true"><path
+            d="M24 8a16 16 0 0 1 15 11l-5-1 6 8 6-8-4 1A21 21 0 0 0 24 3zM24 40A16 16 0 0 1 9 29l5 1-6-8-6 8 4-1A21 21 0 0 0 24 45z"
+            fill="currentColor"/></svg>
+        </span>
+        <i class="spin-caption" id="spin-label">ÇEVİR</i>
+      </button>
+
+      <button class="pad-btn" id="btn-auto">
+        <span class="pad-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M9 16l3-8 3 8M10 13.5h4" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round"/></svg></span>
+        <i>OTO OYNA</i>
+      </button>
+
+      <button class="pad-btn" id="btn-paytable">
+        <span class="pad-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 20V10M12 20V4M19 20v-7" stroke="currentColor" stroke-width="2.6"
+            stroke-linecap="round" fill="none"/></svg></span>
+        <i>ÖDEME<br>TABLOSU</i>
+      </button>
     </div>
   </footer>
 </div>
@@ -132,6 +204,8 @@
     <div class="modal-body">
       <button class="wide-btn" id="menu-paytable">📋 Ödeme Tablosu &amp; Kurallar</button>
       <button class="wide-btn" id="menu-stats">📊 İstatistikler</button>
+      <a class="wide-btn" href="./#/gorevler"
+         style="text-decoration:none;display:block;text-align:center">🎁 Görevler &amp; Günlük Ödül</a>
       <a class="wide-btn" href="./#/oyun/yildirim-goklerin-ofkesi"
          style="text-decoration:none;display:block;text-align:center">↩︎ Oyun Sayfasına Dön</a>
       <p class="fineprint">
@@ -162,6 +236,18 @@
       <p class="muted">Kaç dönüş otomatik oynansın?</p>
       <div class="chip-row" id="auto-options"></div>
       <button class="wide-btn danger" id="auto-stop">Otomatik Oyunu Durdur</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal-bet" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>Bahis Seçimi</h2>
+      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
+    </header>
+    <div class="modal-body">
+      <div class="chip-row" id="bet-options"></div>
     </div>
   </div>
 </div>

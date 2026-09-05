@@ -66,6 +66,7 @@ const RAW = [
   ['7 Hot Çan Zinciri', ['slot', 'populer', 'yeni', 'jackpot'], 'lava', 'bell', 'yuksek', 95.6, 'sevenhot'],
   ['Yıldırım Göklerin Öfkesi', ['slot', 'populer', 'yeni', 'bonus-buy'], 'amethyst', 'phoenix', 'yuksek', 95.4, 'yildirim'],
 
+
   ['Altın Firavun', ['slot', 'populer'], 'sand', 'pyramid', 'yuksek', 96.1],
   ['Ejder Hazinesi', ['slot', 'populer', 'jackpot'], 'crimson', 'dragon', 'yuksek', 95.4],
   ['Kristal Mağara', ['slot', 'yeni'], 'ice', 'gem', 'orta', 96.4],
@@ -197,6 +198,14 @@ function hash(str) {
   return Math.abs(h);
 }
 
+/**
+ * Kapak görseli olan oyunlar. Diğerlerinin kapağı public/js/cover.js
+ * tarafından palet + motiften vektörel olarak üretilir.
+ */
+export const COVER_IMAGES = {
+  yildirim: 'img/yildirim-cover.webp'
+};
+
 /** Oynanabilir motorların arayüz sayfaları. */
 export const ENGINE_PAGES = {
   'lucky-reels': 'game.html',
@@ -219,6 +228,7 @@ export const GAMES = RAW.map(([name, categories, palette, motif, volatility, rtp
     engine: engine || null,
     playable: Boolean(engine),
     page: engine ? ENGINE_PAGES[engine] || null : null,
+    cover: engine ? COVER_IMAGES[engine] || null : null,
     isNew: categories.includes('yeni'),
     isHot: categories.includes('populer'),
     hasJackpot: categories.includes('jackpot'),

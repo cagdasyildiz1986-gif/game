@@ -51,6 +51,7 @@ function view(game, account) {
     playable: game.playable,
     engine: game.engine,
     page: game.page,
+    cover: game.cover,
     isNew: game.isNew,
     isHot: game.isHot,
     hasJackpot: game.hasJackpot,

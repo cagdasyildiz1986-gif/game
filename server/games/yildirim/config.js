@@ -35,7 +35,7 @@ export const MAX_WIN = 5000;
 
 export const SYMBOLS = {
   BOGA:     { id: 'BOGA',     name: 'Boğa',            kind: 'high' },
-  BALTA:    { id: 'BALTA',    name: 'Çift Balta',      kind: 'high' },
+  MIGFER:   { id: 'MIGFER',   name: 'Tunç Miğfer',     kind: 'high' },
   KARTAL:   { id: 'KARTAL',   name: 'Çift Başlı Kartal', kind: 'high' },
   KURS:     { id: 'KURS',     name: 'Güneş Kursu',     kind: 'high' },
   KOR:      { id: 'KOR',      name: 'Kor Taşı',        kind: 'low' },
@@ -51,7 +51,7 @@ export const SCATTER = 'SCATTER';
 export const MULT = 'MULT';
 
 /** Ödeme yapan semboller (scatter ve küre hariç) — sunum sırası. */
-export const PAY_SYMBOLS = ['BOGA', 'BALTA', 'KARTAL', 'KURS', 'KOR', 'MOR', 'KEHRIBAR', 'ZUMRUT', 'GOK'];
+export const PAY_SYMBOLS = ['BOGA', 'MIGFER', 'KARTAL', 'KURS', 'KOR', 'MOR', 'KEHRIBAR', 'ZUMRUT', 'GOK'];
 
 /* ═══════════ Ödeme tablosu ═══════════ */
 
@@ -61,7 +61,7 @@ export const PAY_SYMBOLS = ['BOGA', 'BALTA', 'KARTAL', 'KURS', 'KOR', 'MOR', 'KE
  */
 export const PAYTABLE = {
   BOGA:     { 8: 4,    10: 12,   12: 30 },
-  BALTA:    { 8: 1.6,  10: 5,    12: 15 },
+  MIGFER:   { 8: 1.6,  10: 5,    12: 15 },
   KARTAL:   { 8: 1,    10: 3,    12: 9 },
   KURS:     { 8: 0.7,  10: 1.8,  12: 6 },
   KOR:      { 8: 0.46, 10: 1.25, 12: 4.2 },
@@ -131,8 +131,8 @@ export const ORB_VALUES = [
  * sırasında tek tek hücreler yeniden doldurulduğundan doğal olan budur.
  * Her makaranın kendi tablosu vardır; kenar makaralar biraz daha cömerttir.
  */
-const W = (boga, balta, kartal, kurs, kor, mor, kehribar, zumrut, gok, scatter) => ({
-  BOGA: boga, BALTA: balta, KARTAL: kartal, KURS: kurs,
+const W = (boga, migfer, kartal, kurs, kor, mor, kehribar, zumrut, gok, scatter) => ({
+  BOGA: boga, MIGFER: migfer, KARTAL: kartal, KURS: kurs,
   KOR: kor, MOR: mor, KEHRIBAR: kehribar, ZUMRUT: zumrut, GOK: gok,
   SCATTER: scatter
 });

@@ -102,6 +102,11 @@ let uid = 0;
  * @param {{name:string, palette:string, motif:string}} game
  */
 export function coverMarkup(game) {
+  // Kendi kapak görseli olan oyunlar vektörel üretimi atlar.
+  if (game.cover) {
+    return `<img class="cover cover-img" src="${game.cover}" alt="" loading="lazy" decoding="async">`;
+  }
+
   const [dark, main, light] = PALETTES[game.palette] || PALETTES.onyx;
   const motif = MOTIFS[game.motif] || MOTIFS.star;
   const id = `cv${(uid += 1)}`;

@@ -14,7 +14,8 @@ Dört katman vardır:
    - **7 HOT · Çan Zinciri** — 5x4, 40 hat; scatter tutmalı respin, "tut ve kazan"
      çan turu ve dört kademeli jackpot merdiveni.
    - **YILDIRIM · Göklerin Öfkesi** — 6x5, **hat yok** (8+ sembol nerede olursa ödüyor);
-     tumble (patla-düş-doldur) ve çarpan küreleri. Bedava dönüşte çarpan birikir.
+     tumble (patla-düş-doldur) ve gökten yıldırımla inen çarpan küreleri.
+     Bedava dönüşte çarpan birikir.
 3. **Canlı masalar** — gerçek zamanlı **Texas Hold'em** (oyuncuya karşı, ev oynamaz) ve
    **Blackjack** (krupiye sabit kurallarla oynar). Masa açma, arkadaş daveti, özel masa.
 4. **Yönetim paneli** — kullanıcı yönetimi, bakiye tanımlama, oyun kazanç/kayıp
@@ -166,7 +167,8 @@ public/
   js/sevenhot-reels.js  5x4 makara + makara tutma + kilitli çan tahtası
   js/sevenhot-symbols.js  BAR, alevli 7, alevli WILD ve çan ailesi
   js/yildirim.js        Tumble canlandırması, küre toplama, biriken çarpan
-  js/yildirim-symbols.js  Bronz kabartmalar (boğa, balta, kartal, kurs) + fasetli taşlar
+  js/yildirim-symbols.js  Altın kabartmalar (boğa, miğfer, kartal, kurs) + fasetli taşlar
+  img/                  YILDIRIM'a ait kapak, logo ve arka plan görselleri
   js/audio.js           Web Audio ile sentezlenen ses efektleri
   js/api.js             Sunucu iletişimi
   js/env.js             API adresi ve demo modu bayrağı
@@ -216,10 +218,11 @@ Hızlı Oyunlar — ayrıca Favoriler.
 sıfırlanır; kilometre taşları (ilk dönüş, kayıt, ilk bonus turu, 1.000 dönüş, jackpot)
 kalıcıdır. Ödüller `Topla` ile bakiyeye eklenir.
 
-**Oyun kapakları:** Katalogda 107 oyun var ve hiçbiri için görsel dosyası yok.
+**Oyun kapakları:** Katalogdaki 107 oyunun neredeyse tamamı için görsel dosyası yoktur.
 Her oyunun bir **palet** (16 seçenek) ve **motif**i (24 seçenek) vardır;
 `public/js/cover.js` bunlardan arka plan, ışık huzmeleri, motif ve altın konturlu
-başlık kilidi olan bir SVG üretir.
+başlık kilidi olan bir SVG üretir. Kendi kapak görseli tanımlanmış oyunlar
+(`COVER_IMAGES`) bu üretimi atlar — şu an yalnızca YILDIRIM.
 
 **Not:** Şu an tam olarak oynanabilen oyunlar **Lucky Reels**, **7 HOT · Çan Zinciri**
 ve **YILDIRIM · Göklerin Öfkesi**'dir.
@@ -374,7 +377,7 @@ Kazananlar patlar, üsttekiler düşer, boşluklar dolar — kazanç kalmayana k
 | Sembol | 8-9 | 10-11 | 12+ |
 |---|---|---|---|
 | 🐂 Boğa | 4 | 12 | 30 |
-| 🪓 Çift Balta | 1,6 | 5 | 15 |
+| ⛑️ Tunç Miğfer | 1,6 | 5 | 15 |
 | 🦅 Çift Başlı Kartal | 1 | 3 | 9 |
 | ☀️ Güneş Kursu | 0,7 | 1,8 | 6 |
 | 🔴 Kor Taşı | 0,46 | 1,25 | 4,2 |
@@ -384,7 +387,8 @@ Kazananlar patlar, üsttekiler düşer, boşluklar dolar — kazanç kalmayana k
 | 🔵 Gök Taşı | 0,13 | 0,31 | 1,15 |
 
 **Çarpan küreleri** — x2'den x500'e kadar değer taşır. Ödeme yapmaz, kazançla patlamaz,
-yerçekimiyle düşer.
+yerçekimiyle düşer. Bir küre ekrana geleceği zaman **gökten o hücreye bir yıldırım
+düşer**: tahta beyaza boğulur, ekran sarsılır ve küre çarpma noktasında belirir.
 
 - **Temel oyun:** tumble dizisi bittiğinde ekrandaki tüm kürelerin değeri toplanır ve
   o dizinin kazancını çarpar, sonra sıfırlanır.

@@ -79,14 +79,14 @@ function layout() {
   const app = document.querySelector('.app');
   const topbar = document.querySelector('.topbar');
   const controls = document.querySelector('.controls');
-  const logo = document.querySelector('.logo');
   const gap = 2;
-  const framePad = 20;
+  const framePad = 30; // çerçeve kenarlığı + iç boşluk + tahta dolgusu
 
   // Yükseklik, hücre boyutuna BAĞLI OLMAYAN ölçülerden hesaplanır; aksi
   // halde sahne yüksekliği ile hücre boyutu birbirini besleyip döngü olur.
+  const brand = document.querySelector('.brand');
   const reserved =
-    topbar.offsetHeight + controls.offsetHeight + (logo?.offsetHeight || 0) + 34 + 26;
+    topbar.offsetHeight + controls.offsetHeight + (brand?.offsetHeight || 0) + 56 + 26;
   const width = Math.min(app.clientWidth, 620) - 12;
   cellW = Math.max(30, Math.floor((width - framePad - gap * (REELS - 1)) / REELS));
   const heightCap = (app.clientHeight - reserved - framePad) / ROWS;
@@ -95,6 +95,12 @@ function layout() {
   const root = document.documentElement.style;
   root.setProperty('--cell-w', `${cellW}px`);
   root.setProperty('--cell-h', `${cellH}px`);
+
+  const layer = $('bolts');
+  if (layer) {
+    const r = layer.getBoundingClientRect();
+    if (r.width && r.height) layer.setAttribute('viewBox', `0 0 ${Math.round(r.width)} ${Math.round(r.height)}`);
+  }
 
   // Var olan taşları yeni ölçüye taşı
   for (let r = 0; r < REELS; r += 1) {
@@ -146,8 +152,29 @@ function releaseFall(el) {
 
 function markLanded(el) {
   el.classList.add('landed');
-  if (el.classList.contains('orb')) el.classList.add('arriving');
-  setTimeout(() => el.classList.remove('landed', 'arriving'), 520);
+  setTimeout(() => el.classList.remove('landed'), 300);
+}
+
+/** Küre hücrelerini bulur — yıldırım bunlara düşer. */
+function findNewOrbs(cells) {
+  const out = [];
+  for (const { reel, row } of cells) {
+    const el = tiles[reel]?.[row];
+    if (el?.classList.contains('orb')) out.push({ reel, row, el });
+  }
+  return out;
+}
+
+/** Küreleri önce gizler; yıldırım çarpınca ortaya çıkarır. */
+function hideOrbs(orbs) {
+  for (const o of orbs) o.el.style.visibility = 'hidden';
+}
+function revealOrbs(orbs) {
+  for (const o of orbs) {
+    o.el.style.visibility = '';
+    o.el.classList.add('arriving');
+    setTimeout(() => o.el.classList.remove('arriving'), 520);
+  }
 }
 
 /** Baştan tüm ızgarayı düşürür (yeni çevirme). */
@@ -183,6 +210,19 @@ async function dropAll(grid) {
     );
   }
   await Promise.all(waits);
+
+  // Bu çevirmede küre geldiyse gökten üstlerine yıldırım iner.
+  const all = [];
+  for (let r = 0; r < REELS; r += 1) {
+    for (let row = 0; row < ROWS; row += 1) all.push({ reel: r, row });
+  }
+  const orbs = findNewOrbs(all);
+  if (orbs.length) {
+    hideOrbs(orbs);
+    await sleep(pace(160));
+    await strikeCells(orbs);
+    revealOrbs(orbs);
+  }
 }
 
 /** Kazananları patlatır, kalanları düşürür, boşlukları doldurur. */
@@ -249,38 +289,104 @@ async function applyTumble(step) {
     for (let row = 0; row < ROWS; row += 1) markLanded(tiles[r][row]);
   }
 
-  // Yeni küre düştüyse gök çakar
-  if (fresh.some((el) => el.classList.contains('orb'))) {
-    strike(2);
-    sfx.coin(7);
+  // Yeni küre düştüyse gökten üstüne yıldırım iner
+  const newOrbs = [];
+  for (let r = 0; r < REELS; r += 1) {
+    for (let row = 0; row < ROWS; row += 1) {
+      const el = tiles[r][row];
+      if (fresh.includes(el) && el.classList.contains('orb')) newOrbs.push({ reel: r, row, el });
+    }
+  }
+  if (newOrbs.length) {
+    hideOrbs(newOrbs);
+    await sleep(pace(120));
+    await strikeCells(newOrbs);
+    revealOrbs(newOrbs);
   }
   await sleep(pace(140));
 }
 
 /* ================== Şimşek ================== */
-/** Çerçevenin içine rastgele çizilmiş şimşekler ve bir flaş. */
-function strike(count = 1, host = $('bolts')) {
-  const frame = document.querySelector('.frame');
-  frame.classList.remove('flash');
-  void frame.offsetWidth;
-  frame.classList.add('flash');
-  setTimeout(() => frame.classList.remove('flash'), 420);
 
+/**
+ * Gökten aşağı, verilen noktaya zikzak çizen bir şimşek yolu üretir.
+ * Koordinatlar şimşek katmanının PİKSEL uzayındadır (0,0 = katmanın tepesi,
+ * yani çerçevenin epey üstü). Hedefe yaklaştıkça sapma azalır.
+ */
+function boltPath(toX, toY, spread = 46) {
+  const w = $('bolts').getBoundingClientRect().width || 360;
+  let d = `M${(toX + (Math.random() - 0.5) * spread).toFixed(1)} -12`;
+  const steps = 6 + Math.floor(Math.random() * 3);
+  for (let i = 1; i <= steps; i += 1) {
+    const t = i / steps;
+    const y = -12 + (toY + 12) * t;
+    const x = toX + (1 - t) * spread * (Math.random() - 0.5);
+    d += ` L${Math.max(-8, Math.min(w + 8, x)).toFixed(1)} ${y.toFixed(1)}`;
+  }
+  return d;
+}
+
+/** Bir hücrenin merkezini şimşek katmanının koordinatlarına çevirir. */
+function cellPoint(reel, row) {
+  const el = tiles[reel]?.[row];
+  const layer = $('bolts').getBoundingClientRect();
+  if (!el) return { x: layer.width / 2, y: layer.height / 2 };
+  const r = el.getBoundingClientRect();
+  return { x: r.left + r.width / 2 - layer.left, y: r.top + r.height / 2 - layer.top };
+}
+
+/** Tahtayı beyaza boğan kısa flaş. */
+function flashBoard() {
+  const board = document.querySelector('.board');
+  board.classList.remove('flash');
+  void board.offsetWidth;
+  board.classList.add('flash');
+  setTimeout(() => board.classList.remove('flash'), 400);
+}
+
+/** Rastgele yerlere düşen atmosferik şimşekler. */
+function strike(count = 1, host = $('bolts')) {
+  flashBoard();
+  const box = host.getBoundingClientRect();
   const paths = [];
   for (let i = 0; i < count; i += 1) {
-    let x = 12 + Math.random() * 76;
-    let d = `M${x.toFixed(1)} -4`;
-    for (let y = 6; y <= 104; y += 12 + Math.random() * 8) {
-      x += (Math.random() - 0.5) * 26;
-      x = Math.max(3, Math.min(97, x));
-      d += ` L${x.toFixed(1)} ${y.toFixed(1)}`;
-    }
-    paths.push(`<path d="${d}" style="animation-delay:${i * 90}ms"/>`);
+    paths.push(
+      `<path d="${boltPath(box.width * (0.12 + Math.random() * 0.76), box.height * 0.9, 60)}"
+        style="animation-delay:${i * 90}ms"/>`
+    );
   }
   host.innerHTML = paths.join('');
-  setTimeout(() => {
-    if (host.innerHTML.includes(paths[0])) host.innerHTML = '';
-  }, 700);
+  setTimeout(() => (host.innerHTML = ''), 760);
+}
+
+/**
+ * ÇARPAN YILDIRIMI — küre bir hücreye ineceği zaman gökten o hücreye
+ * bir şimşek düşer, çarpma anında ışık halkası açılır ve küre belirir.
+ */
+async function strikeCells(targets) {
+  if (!targets.length) return;
+  const host = $('bolts');
+  const paths = targets.map((t, i) => {
+    const { x, y } = cellPoint(t.reel, t.row);
+    return `<path class="thick" d="${boltPath(x, y, 40)}" style="animation-delay:${i * 110}ms"/>`;
+  });
+  host.innerHTML = paths.join('');
+  flashBoard();
+  sfx.reelStop(0, true);
+
+  document.body.classList.add('shake');
+  setTimeout(() => document.body.classList.remove('shake'), 380);
+
+  for (let i = 0; i < targets.length; i += 1) {
+    const el = tiles[targets[i].reel]?.[targets[i].row];
+    if (el) {
+      el.classList.add('struck');
+      setTimeout(() => el.classList.remove('struck'), 420);
+    }
+    if (i < targets.length - 1) await sleep(pace(110));
+  }
+  setTimeout(() => (host.innerHTML = ''), 760);
+  await sleep(pace(240));
 }
 
 /* ================== Sayaçlar ================== */
@@ -321,26 +427,30 @@ function renderPlayer(player) {
 
   const inFree = state.free.remaining > 0;
   document.body.classList.toggle('free-mode', inFree);
-  // Kalıcı çarpan yalnızca bedava dönüşte anlamlıdır; temel oyunda
-  // üst şeritte oyunun kimliği durur.
-  $('mode-chip').hidden = inFree;
-  $('hud-mult-wrap').hidden = !inFree;
-  $('hud-free-wrap').hidden = !inFree;
-  $('hud-free').textContent = state.free.remaining;
+
+  // Üst şeritteki hap: temel oyunda oyun kimliği, bedava dönüşte
+  // kalan dönüş ve biriken kalıcı çarpan.
+  $('mode-text').textContent = inFree
+    ? `BEDAVA ${state.free.remaining} · ÇARPAN x${fmt(Math.max(1, state.free.multiplier))}`
+    : '6 × 5 · TUMBLE';
+
   $('spin-label').textContent = inFree ? 'BEDAVA' : 'ÇEVİR';
   $('bet-up').disabled = inFree;
   $('bet-down').disabled = inFree;
-  setMultiplierHud(inFree ? state.free.multiplier : 0, false);
+  $('btn-bet').disabled = inFree;
 }
 
+/** Bedava dönüşte biriken çarpanı üst şeritte parlatır. */
 function setMultiplierHud(value, bump = true) {
-  const el = $('hud-mult');
-  el.textContent = `x${fmt(Math.max(1, value))}`;
-  el.closest('.hud-item').classList.toggle('charged', value >= 10);
+  if (state.free.remaining <= 0 && !bump) return;
+  $('mode-text').textContent =
+    `BEDAVA ${state.free.remaining} · ÇARPAN x${fmt(Math.max(1, value))}`;
   if (bump) {
-    el.classList.remove('bump');
-    void el.offsetWidth;
-    el.classList.add('bump');
+    const pill = $('mode-pill');
+    pill.classList.remove('bump');
+    void pill.offsetWidth;
+    pill.classList.add('bump');
+    setTimeout(() => pill.classList.remove('bump'), 500);
   }
 }
 
@@ -698,10 +808,7 @@ function renderStats() {
 }
 
 /* ================== Bahis ================== */
-async function changeBet(direction) {
-  const levels = state.config.betLevels;
-  const index = levels.indexOf(state.bet);
-  const next = levels[Math.min(levels.length - 1, Math.max(0, index + direction))];
+async function setBet(next) {
   if (next === state.bet) return;
   sfx.click();
   try {
@@ -711,6 +818,12 @@ async function changeBet(direction) {
   } catch (err) {
     toast(err.message);
   }
+}
+
+async function changeBet(direction) {
+  const levels = state.config.betLevels;
+  const index = levels.indexOf(state.bet);
+  return setBet(levels[Math.min(levels.length - 1, Math.max(0, index + direction))]);
 }
 
 /* ================== Başlatma ================== */
@@ -730,6 +843,48 @@ function bindEvents() {
     sfx.click();
   });
   $('btn-turbo').classList.toggle('active', state.turbo);
+
+  // Bahis seçimi — hem hap hem OTOMATİK düğmesi aynı listeyi açar
+  const openBets = () => {
+    if (state.free.remaining > 0) {
+      toast('Bedava dönüşler sırasında bahis değiştirilemez.');
+      return;
+    }
+    $('bet-options').innerHTML = state.config.betLevels
+      .map((b) => `<button class="chip${b === state.bet ? ' active' : ''}" data-bet="${b}">${money(b)}</button>`)
+      .join('');
+    openModal('modal-bet');
+  };
+  $('btn-bet').addEventListener('click', openBets);
+  $('bet-options').addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-bet]');
+    if (!btn) return;
+    closeModal('modal-bet');
+    await setBet(Number(btn.dataset.bet));
+  });
+
+  $('btn-paytable').addEventListener('click', () => {
+    renderPaytable();
+    openModal('modal-paytable');
+  });
+
+  $('btn-settings').addEventListener('click', () => {
+    sfx.click();
+    openModal('modal-menu');
+  });
+  $('btn-daily').addEventListener('click', () => {
+    sfx.click();
+    location.href = './#/gorevler';
+  });
+  $('btn-tournament').addEventListener('click', () => {
+    sfx.click();
+    toast('Turnuvalar yakında — şimdilik görevlerden puan kazanabilirsiniz.', 2800);
+  });
+  $('mode-pill').addEventListener('click', () => {
+    if (state.free.remaining > 0) return;
+    renderPaytable();
+    openModal('modal-paytable');
+  });
 
   $('btn-auto').addEventListener('click', () => {
     sfx.click();
@@ -753,10 +908,14 @@ function bindEvents() {
     closeModal('modal-auto');
   });
 
+  const soundIcon = (on) =>
+    on
+      ? '<path d="M4 9h4l5-4v14l-5-4H4zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>'
+      : '<path d="M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>';
+  $('icon-sound').innerHTML = soundIcon(sfx.enabled);
   $('btn-sound').addEventListener('click', () => {
-    $('btn-sound').textContent = sfx.toggle() ? '🔊' : '🔇';
+    $('icon-sound').innerHTML = soundIcon(sfx.toggle());
   });
-  $('btn-sound').textContent = sfx.enabled ? '🔊' : '🔇';
 
   $('btn-menu').addEventListener('click', () => {
     sfx.click();
