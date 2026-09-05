@@ -141,6 +141,8 @@ body::before {
   background: var(--surface); font-weight: 700; cursor: pointer;
 }
 .btn:active { transform: scale(.98); }
+.btn svg { width: 18px; height: 18px; flex: 0 0 18px; }
+.btn[data-fav].on svg { color: var(--ember-b); fill: var(--ember-b); }
 .btn-gold {
   background: var(--aurum); color: #2a1500; border-color: transparent;
   box-shadow: var(--shadow-gold);
