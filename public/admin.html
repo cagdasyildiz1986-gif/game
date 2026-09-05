@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Yönetim · AURUM</title>
+<meta name="theme-color" content="#06060c">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/site.css">
+<style>
+  .admin-tabs { display:flex; gap:6px; overflow-x:auto; margin:12px 0; scrollbar-width:none; }
+  .admin-tabs::-webkit-scrollbar { display:none; }
+  .admin-tabs button {
+    flex:0 0 auto; height:36px; padding:0 16px; border-radius:99px;
+    border:1px solid var(--line); background:var(--surface);
+    color:var(--muted); font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .admin-tabs button.on { background:rgba(245,196,81,.16); border-color:rgba(245,196,81,.45); color:var(--gold-2); }
+
+  .kpi { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; margin-bottom:16px; }
+  @media (min-width:700px){ .kpi { grid-template-columns:repeat(4,1fr); } }
+  .kpi-card { padding:13px; border-radius:var(--radius-sm); background:var(--surface); border:1px solid var(--line); }
+  .kpi-label { font-size:10px; letter-spacing:.8px; color:var(--dim); text-transform:uppercase; }
+  .kpi-value { font-size:20px; font-weight:900; color:var(--gold-2); margin-top:3px; font-variant-numeric:tabular-nums; }
+  .kpi-sub { font-size:10.5px; color:var(--muted); margin-top:2px; }
+
+  .urow {
+    display:flex; align-items:center; gap:10px; padding:11px;
+    border-radius:var(--radius-sm); border:1px solid var(--line);
+    background:var(--surface); margin-bottom:8px;
+  }
+  .uavatar { width:38px;height:38px;flex:0 0 38px;border-radius:11px;display:grid;place-items:center;
+    background:rgba(255,255,255,.06); font-size:18px; }
+  .uname { font-size:13.5px; font-weight:700; }
+  .umeta { font-size:10.5px; color:var(--dim); margin-top:1px; }
+  .ubal { margin-left:auto; text-align:right; }
+  .ubal b { display:block; font-size:15px; color:var(--gold-2); font-variant-numeric:tabular-nums; }
+  .utag { font-size:8.5px; font-weight:800; padding:2px 6px; border-radius:99px; margin-left:5px; }
+  .tag-admin { background:rgba(245,196,81,.2); color:var(--gold-2); }
+  .tag-banned { background:rgba(255,84,112,.2); color:#ff9daa; }
+  .tag-guest { background:rgba(255,255,255,.08); color:var(--muted); }
+
+  .setting { padding:13px; border-radius:var(--radius-sm); border:1px solid var(--line);
+    background:var(--surface); margin-bottom:10px; }
+  .setting-head { display:flex; align-items:baseline; gap:8px; margin-bottom:8px; }
+  .setting-name { font-size:13.5px; font-weight:700; }
+  .setting-value { margin-left:auto; font-size:15px; font-weight:900; color:var(--gold-2); font-variant-numeric:tabular-nums; }
+  .setting-desc { font-size:11.5px; color:var(--dim); line-height:1.5; margin-top:6px; }
+  .setting input[type=range] { width:100%; accent-color:var(--gold); }
+  .seg { display:flex; gap:6px; }
+  .seg button { flex:1; height:36px; border-radius:9px; border:1px solid var(--line);
+    background:rgba(0,0,0,.3); color:var(--muted); font-size:12.5px; cursor:pointer; }
+  .seg button.on { background:rgba(245,196,81,.16); border-color:rgba(245,196,81,.45); color:var(--gold-2); }
+
+  .ledger-row { display:flex; gap:10px; padding:9px 0; border-bottom:1px dashed rgba(255,255,255,.08); font-size:12px; }
+  .ledger-row b { color:var(--gold-2); font-variant-numeric:tabular-nums; }
+  .ledger-plus { color:var(--teal); }
+  .ledger-minus { color:#ff9daa; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="icon-btn" href="./#/" aria-label="Siteye dön">‹</a>
+    <div>
+      <div style="font-size:15px;font-weight:900">Yönetim Paneli</div>
+      <div style="font-size:10px;color:var(--dim)" id="admin-who">—</div>
+    </div>
+    <span class="topbar-spacer"></span>
+    <div class="live-chip" id="admin-balance" style="font-size:12px;color:var(--gold-2);background:var(--surface);
+      border:1px solid rgba(245,196,81,.3);padding:6px 11px;border-radius:99px;font-weight:800">—</div>
+  </div>
+</header>
+
+<main class="wrap" id="admin-view" style="padding-bottom:40px"></main>
+
+<div id="sheet-host"></div>
+<div id="toast-host"></div>
+
+<script src="js/env.js"></script>
+<script type="module" src="js/admin.js"></script>
+</body>
+</html>

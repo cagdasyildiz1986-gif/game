@@ -4,12 +4,16 @@ Mobil öncelikli bir casino sitesi ve içindeki tam sürüm slot oyunu.
 **Node.js** sunucu üzerinde çalışır, **PWA** olarak sunulur ve **Capacitor** ile
 Android/iOS uygulamasına dönüştürülebilir.
 
-İki katman vardır:
+Dört katman vardır:
 
 1. **Site (AURUM)** — lobi, 105 oyunluk katalog, kategoriler, arama, favoriler,
-   üyelik, kalıcı bakiye ve görev/puan sistemi.
-2. **Oyun (Lucky Reels)** — EGT ve Pragmatic Play tarzı 5x3, 20 sabit hatlı video slot;
+   üyelik, kalıcı bakiye, detaylı profil ve görev/puan sistemi.
+2. **Slot (Lucky Reels)** — EGT ve Pragmatic Play tarzı 5x3, 20 sabit hatlı video slot;
    bedava dönüşler, Jackpot Cards bonusu ve sunucu taraflı RNG.
+3. **Canlı masalar** — gerçek zamanlı **Texas Hold'em** (oyuncuya karşı, ev oynamaz) ve
+   **Blackjack** (krupiye sabit kurallarla oynar). Masa açma, arkadaş daveti, özel masa.
+4. **Yönetim paneli** — kullanıcı yönetimi, bakiye tanımlama, oyun kazanç/kayıp
+   ayarları (RTP, rake, blackjack kuralları), para birimi ve sistem ayarları.
 
 > ⚠️ Bu proje **eğlence amaçlı sanal kredi** ile çalışır. Gerçek para yatırma, çekme veya
 > bahis işlevi **yoktur**. Gerçek parayla oynatmak yasal olarak lisans gerektirir —
@@ -59,6 +63,10 @@ npm install && npm start   # http://localhost:3000
 | | |
 |---|---|
 | **Site** | 105 oyunluk katalog, 8 kategori, 8 sağlayıcı, arama, favoriler, görevler |
+| **Canlı** | Texas Hold'em ve Blackjack, WebSocket, özel masa + davet kodu, bot koltukları |
+| **Yönetim** | Kullanıcı/bakiye yönetimi, RTP ve masa ayarları, bakiye kayıt defteri |
+| **Para birimi** | TL (₺) varsayılan; USD/EUR/Çip seçilebilir — yalnızca gösterim |
+| **Testler** | 63 birim testi + 16 uçtan uca canlı masa testi (`npm test`) |
 | **Üyelik** | Kayıt/giriş (scrypt), kalıcı bakiye, misafirden hesaba yükseltme |
 | **Puan** | Satılmaz — yalnızca görevlerle ve oyun kazançlarıyla elde edilir |
 | **Oyun** | 5 makara × 3 satır, 20 sabit ödeme hattı |
@@ -98,6 +106,15 @@ server/
   site/
     catalog.js          Oyun kataloğu, kategoriler, sağlayıcılar, arama
     tasks.js            Görev tanımları, ilerleme ve ödül mantığı
+    settings.js         Yönetilebilir ayarlar (para birimi, RTP, masa kuralları)
+  live/
+    deck.js             Deste, kriptografik karıştırma, ayakkabı (shoe)
+    handEval.js         7 karttan en iyi 5'li el değerlendirme
+    holdem.js           Texas Hold'em durum makinesi ve pot dağıtımı
+    blackjack.js        Blackjack masası ve krupiye kuralları
+    tables.js           Masa yönetimi, buy-in, özel masa, zamanlayıcı
+    bots.js             Bot oyuncular (tek başına deneme için)
+    ws.js               WebSocket sunucusu ve oda yayını
   game/
     symbols.js          Sembol tanımları (wild / scatter)
     paylines.js         20 sabit ödeme hattı
@@ -111,9 +128,13 @@ server/
 public/
   index.html            Site (lobi) iskeleti
   game.html             Slot oyunu sayfası
+  live.html             Canlı masa (poker / blackjack)
+  admin.html            Yönetim paneli
   css/site.css          Site tasarım sistemi
   css/style.css         Oyun teması
   js/site.js            Lobi yönlendiricisi ve görünümleri
+  js/live.js            Canlı masa arayüzü (WebSocket istemcisi)
+  js/admin.js           Yönetim paneli arayüzü
   js/cover.js           Oyun kapaklarının vektörel üreticisi
   js/icons.js           Arayüz ikonları
   js/app.js             Oyun akışı ve arayüz mantığı
@@ -125,6 +146,9 @@ public/
   js/demo.js            Sunucusuz demo arka ucu (GitHub Pages sürümü)
   sw.js                 Service worker (offline kabuk)
 tools/simulate.js       RTP / volatilite simülasyonu
+tools/test-hands.js     El değerlendirici testleri
+tools/test-holdem.js    Hold'em motoru testleri (çip korunumu dahil)
+tools/test-blackjack.js Blackjack testleri
 tools/build-demo.js     GitHub Pages demo derlemesi (dist/)
 .github/workflows/      Pages yayın akışı
 .devcontainer/          Codespaces yapılandırması
@@ -156,6 +180,75 @@ detay sayfasında bu açıkça belirtilir.
 
 ---
 
+## Canlı masalar
+
+### Texas Hold'em
+
+**Krupiye = sunucu. Ev oynamaz** — oyuncular birbirine karşı oynar, sunucu yalnızca
+dağıtır, sırayı yönetir ve potu paylaştırır. Zynga Poker mantığında ring (nakit) masa:
+
+- Buton ve blindler her elde döner (heads-up'ta buton küçük blind)
+- Preflop → flop → turn → river; fold / check / call / raise / all-in
+- Min-raise kuralı, eksik all-in yükseltmeleri min-raise'i değiştirmez
+- **Yan potlar** ve eşitlikte pot bölüşümü
+- Aksiyon süresi dolunca otomatik check/fold
+- Komisyon (rake) yönetici ayarı: yüzde + büyük blind cinsinden tavan, yalnızca flop görüldüyse
+- En az 2 oyuncu gerekir
+
+Kart gizliliği motorda zorlanır: `engine.view(viewerId)` yalnızca kendi kartlarını
+gönderir, rakip kartları showdown'a kadar `null`'dır.
+
+### Blackjack
+
+Krupiye **oynar ama karar vermez** — sabit kurallarla hareket eder:
+
+- 17'de durur (yönetici H17'yi açabilir)
+- Blackjack 3:2 (6:5 ve 1:1 seçilebilir), sigorta 2:1
+- Hit / stand / double / split (4 ele kadar)
+- 1-8 desteli ayakkabı, kesme kartına gelince karıştırılır
+
+### Masa yönetimi
+
+- **Masa açma:** limit seçilir, isteğe bağlı bot koltukları eklenir
+- **Özel masa:** 6 haneli kod üretilir, yalnızca kodu bilen veya davet edilen girer
+- **Arkadaş daveti:** kod veya bağlantı paylaşılır (`live.html?kod=XXXXXX`)
+- **Buy-in:** masaya otururken bakiyeden çip alınır, kalkınca kalan çip geri döner.
+  Çip ile bakiye arasındaki tek geçiş noktası budur; çip üretilemez.
+- **Botlar:** tek başına denemek için eklenir, arayüzde **her zaman 🤖 ile işaretlenir**
+  ve asla gerçek oyuncu gibi gösterilmez. Yönetici kapatabilir.
+
+> Canlı masalar **sunucu gerektirir**. GitHub Pages demosunda WebSocket yoktur;
+> o sürümde masalar devre dışıdır ve ekranda bu açıkça belirtilir.
+
+---
+
+## Yönetim paneli
+
+`/admin.html` — yalnızca yönetici rolündeki hesaplar erişebilir (sunucu tarafında da zorlanır).
+
+**Yönetici nasıl olunur?** Sistemdeki **ilk kayıtlı hesap** otomatik yönetici olur.
+Alternatif olarak `ADMIN_USERNAME` ortam değişkeni ile belirlenebilir.
+
+| Sekme | İçerik |
+|---|---|
+| Özet | Kullanıcı, bakiye, dönüş, kasa payı ve jackpot göstergeleri |
+| Kullanıcılar | Arama, **bakiye tanımlama/düşme**, hesap engelleme, rol değiştirme |
+| Oyun Ayarları | Slot **RTP hedefi**, poker komisyonu, blackjack ödemesi/S17-H17/deste sayısı |
+| Masa Ayarları | Aksiyon süresi, koltuk sayısı, bot izni, limit tablosu |
+| Sistem | Para birimi, başlangıç bakiyesi, misafir izni, bakım modu |
+| Bakiye Kayıtları | Yönetici bakiye işlemlerinin iz kaydı |
+
+### RTP ayarı hakkında
+
+Slot ödeme tablosu `%95,8` temel değeri için ayarlıdır. Yönetici bir RTP hedefi
+girdiğinde ödemeler `hedef / 95.8` oranıyla ölçeklenir.
+
+**Bu değer oyun içi ödeme tablosunda oyunculara da gösterilir** — ayar ile görünen
+RTP her zaman aynıdır. Oyuncuya farklı bir oran gösterip arkada başka bir oran
+uygulamak mümkün değildir; bu bilinçli bir tasarım kararıdır.
+
+---
+
 ## Oyun matematiği
 
 **Ödeme tablosu** (hat bahsi çarpanı — toplam bahis / 20):
@@ -180,6 +273,17 @@ scatterlar +5 dönüş ekler.
 **Jackpot Cards** — her ücretli dönüşün ardından rastgele tetiklenir. Aynı türden 3 kart
 açan oyuncu ilgili progresif havuzu kazanır: ♣ Sinek, ♦ Karo, ♥ Kupa, ♠ Maça.
 Bahsin %1'i havuzlara aktarılır.
+
+### Testler
+
+```bash
+npm test          # 63 birim testi (el değerlendirici, Hold'em, Blackjack)
+npm run simulate  # RTP / volatilite simülasyonu
+```
+
+Hold'em testleri arasında **~15.000 rastgele elde çip korunumu** kontrolü vardır;
+bu test, yan potlarda çip kaybına yol açan gerçek bir hatayı yakaladı
+(katkıda bulunanların hepsi çekildiğinde yan pot yok sayılıyordu).
 
 ### RTP'yi ölçme ve ayarlama
 
@@ -234,7 +338,15 @@ Tüm istekler `Authorization: Bearer <token>` başlığı ister (`/config`, `/se
 | `POST` | `/api/site/favorite/:id` | Favori ekle/çıkar |
 | `GET` | `/api/site/tasks` | Görevler ve ilerleme |
 | `POST` | `/api/site/tasks/:id/claim` | Görev ödülünü topla |
-| `GET` | `/api/config` | Semboller, ödeme tablosu, hatlar, bahis seviyeleri |
+| `POST` | `/api/auth/profile` | Avatar ve görünen ad güncelleme |
+| `GET` | `/api/site/settings` | Herkese açık ayarlar (para birimi, masa limitleri, kurallar) |
+| `GET` | `/api/admin/overview` | Yönetim özeti (yalnızca admin) |
+| `GET` | `/api/admin/users` | Kullanıcı listesi/arama |
+| `POST` | `/api/admin/users/:id/balance` | Bakiye tanımlama / düşme |
+| `POST` | `/api/admin/users/:id/ban` | Hesap engelleme |
+| `POST` | `/api/admin/settings` | Sistem ve oyun ayarları |
+| `WS` | `/live` | Canlı masalar (auth, create, join, action, bet, chat, invite) |
+| `GET` | `/api/config` | Semboller, ödeme tablosu, hatlar, bahis seviyeleri, RTP, para birimi |
 | `POST` | `/api/bet` | Bahis seviyesi değiştir |
 | `POST` | `/api/spin` | Dönüş yap → grid, kazançlar, bakiye |
 | `GET` | `/api/jackpots` | Güncel progresif havuzlar |
@@ -336,8 +448,12 @@ sonraki adımlar:
 - [x] Görev/puan sistemi
 - [ ] Gerçek veritabanı (Postgres) — `server/store/memory.js` yerine adaptör
 - [ ] E-posta / telefon doğrulama, parola sıfırlama
-- [ ] Daha fazla oynanabilir oyun (rulet ve blackjack en yakın adaylar)
-- [ ] Seviye/XP, liderlik tablosu, turnuvalar
+- [x] Çok oyunculu Texas Hold'em ve Blackjack
+- [x] Yönetim paneli ve bakiye yönetimi
+- [x] Seviye/XP ve detaylı profil
+- [ ] Rulet motoru (masa yapısı hazır)
+- [ ] Liderlik tablosu ve turnuvalar
+- [ ] Arkadaş listesi ve doğrudan mesaj
 - [ ] Sunucu tarafı oturum geçmişi ve dönüş logları (denetlenebilirlik)
 - [ ] Push bildirim (Capacitor Push Notifications)
 - [ ] Çoklu dil desteği

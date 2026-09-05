@@ -3,11 +3,39 @@ import { CATEGORIES, PROVIDERS, GAMES, GAME_BY_ID, categoryCounts, searchGames }
 import { taskView, claim, advance, rollDaily } from '../site/tasks.js';
 import { publicAccount, save } from '../store/memory.js';
 import { requireAccount, optionalAccount } from './auth.js';
+import { getSettings } from '../store/memory.js';
+import { currencyOf } from '../site/settings.js';
 import { jackpotView } from './game.js';
 
 export const router = express.Router();
 
 const MAX_RECENT = 12;
+
+/** Oyuncularin gormesi gereken ayarlar (gizli/idari alanlar haric). */
+router.get('/settings', (req, res) => {
+  const settings = getSettings();
+  res.json({
+    currency: currencyOf(settings),
+    slot: { rtp: settings.slot.rtpTarget },
+    poker: {
+      rakePercent: settings.poker.rakePercent,
+      actionSeconds: settings.poker.actionSeconds,
+      maxSeats: settings.poker.maxSeats
+    },
+    blackjack: {
+      dealerHitsSoft17: settings.blackjack.dealerHitsSoft17,
+      blackjackPayout: settings.blackjack.blackjackPayout,
+      deckCount: settings.blackjack.deckCount,
+      insurance: settings.blackjack.insurance,
+      maxSeats: settings.blackjack.maxSeats
+    },
+    tables: {
+      stakes: settings.tables.stakes,
+      blackjackLimits: settings.tables.blackjackLimits,
+      allowBots: settings.tables.allowBots
+    }
+  });
+});
 
 /** Istemciye gidecek sade oyun kaydi. */
 function view(game, account) {

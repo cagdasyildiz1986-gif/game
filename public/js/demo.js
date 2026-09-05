@@ -41,6 +41,19 @@ class BrowserRng {
 
 const rng = new BrowserRng();
 
+/** Sunucudaki ile ayni seviye egrisi. */
+function levelFromXp(xp) {
+  let level = 1;
+  let need = 500;
+  let total = 0;
+  while (xp >= total + need && level < 100) {
+    total += need;
+    need = Math.round(need * 1.35);
+    level += 1;
+  }
+  return { level, current: xp - total, need, total };
+}
+
 function freshState() {
   return {
     player: {
@@ -48,6 +61,10 @@ function freshState() {
       name: 'Misafir',
       username: null,
       guest: true,
+      avatar: '🦊',
+      xp: 0,
+      createdAt: Date.now(),
+      history: [],
       balance: START_BALANCE,
       bet: 20,
       freeSpins: { remaining: 0, total: 0, multiplier: 1, win: 0 },
@@ -99,6 +116,12 @@ function publicPlayer() {
     recent: p.recent,
     username: p.username,
     guest: p.guest,
+    admin: false,
+    avatar: p.avatar || '🦊',
+    createdAt: p.createdAt || Date.now(),
+    xp: p.xp || 0,
+    level: levelFromXp(p.xp || 0),
+    history: (p.history || []).slice(-30).reverse(),
     fair: { serverSeedHash: 'demo', clientSeed: 'demo', nonce: p.stats.spins }
   };
 }
@@ -144,6 +167,8 @@ export const demoApi = {
   },
   async config() {
     return {
+      currency: { code: 'TRY', symbol: '₺', name: 'Türk Lirası', locale: 'tr-TR' },
+      rtp: 95.8,
       symbols: SYMBOLS,
       wild: WILD,
       scatter: SCATTER,
@@ -184,6 +209,7 @@ export const demoApi = {
       betLevels: BET_LEVELS
     });
     if (error) throw new Error(error);
+    state.player.xp = (state.player.xp || 0) + Math.max(1, Math.round(state.player.bet / 10));
     applySpinToTasks(state.player.tasks, {
       spin,
       bet: state.player.bet,
@@ -198,6 +224,24 @@ export const demoApi = {
 
   /* ---- Hesap (demo: yerel) ---- */
   async me() {
+    return { player: publicPlayer() };
+  },
+  async publicSettings() {
+    return {
+      currency: { code: 'TRY', symbol: '₺', name: 'Türk Lirası', locale: 'tr-TR' },
+      slot: { rtp: 95.8 },
+      poker: { rakePercent: 0, actionSeconds: 25, maxSeats: 6 },
+      blackjack: { dealerHitsSoft17: false, blackjackPayout: 1.5, deckCount: 6, insurance: true, maxSeats: 5 },
+      tables: { stakes: [], blackjackLimits: [], allowBots: false }
+    };
+  },
+  async avatars() {
+    return { avatars: ['🦊', '🐺', '🦁', '🐯', '🐼', '🦅', '🐉', '🦈', '🐍', '🦂', '🐙', '🦉'] };
+  },
+  async updateProfile(patch) {
+    if (patch.avatar) state.player.avatar = patch.avatar;
+    if (patch.name) state.player.name = String(patch.name).trim().slice(0, 24);
+    persist();
     return { player: publicPlayer() };
   },
   async register(username, password) {

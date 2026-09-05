@@ -1,5 +1,5 @@
 /* Basit uygulama-kabugu onbellegi - offline acilis ve hizli yukleme icin. */
-const CACHE = 'aurum-v2';
+const CACHE = 'aurum-v3';
 // Goreli yollar: uygulama hem kok dizinde (Node sunucusu) hem de
 // alt dizinde (GitHub Pages: /<repo>/) ayni sekilde calisir.
 const SHELL = [
@@ -14,6 +14,10 @@ const SHELL = [
   './js/icons.js',
   './js/cover.js',
   './js/app.js',
+  './js/live.js',
+  './js/admin.js',
+  './css/live.css',
+  './live.html',
   './js/audio.js',
   './js/reels.js',
   './js/symbols.js',

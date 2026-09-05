@@ -5,6 +5,8 @@ import { config } from './config.js';
 import { router as gameRouter } from './routes/game.js';
 import { router as authRouter } from './routes/auth.js';
 import { router as siteRouter } from './routes/site.js';
+import { router as adminRouter } from './routes/admin.js';
+import { attachLiveServer } from './live/ws.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, '..', 'public');
@@ -24,6 +26,7 @@ app.use((req, res, next) => {
 
 app.use('/api/auth', authRouter);
 app.use('/api/site', siteRouter);
+app.use('/api/admin', adminRouter);
 app.use('/api', gameRouter);
 app.use('/api', (req, res) => res.status(404).json({ error: 'Bilinmeyen uç nokta.' }));
 app.get('/healthz', (req, res) => res.json({ ok: true, uptime: process.uptime() }));
@@ -44,6 +47,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Sunucu hatası.' });
 });
 
-app.listen(config.port, config.host, () => {
-  console.log(`🎰 Lucky Reels http://localhost:${config.port} adresinde çalışıyor`);
+const server = app.listen(config.port, config.host, () => {
+  console.log(`🎰 AURUM http://localhost:${config.port} adresinde çalışıyor`);
 });
+
+// Gercek zamanli masa oyunlari (WebSocket, /live)
+const live = attachLiveServer(server);
+app.set('live', live);

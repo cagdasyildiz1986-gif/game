@@ -7,7 +7,16 @@ import { PAYTABLE, SCATTER_PAY, FREE_SPINS, JACKPOT } from '../game/paytable.js'
 import { PAYLINES } from '../game/paylines.js';
 import { SYMBOLS, WILD, SCATTER } from '../game/symbols.js';
 import { applySpinToTasks } from '../site/tasks.js';
-import { getJackpots, publicAccount, round2, save } from '../store/memory.js';
+import {
+  getJackpots,
+  publicAccount,
+  round2,
+  save,
+  getSettings,
+  addXp,
+  recordHistory
+} from '../store/memory.js';
+import { slotPayoutScale, currencyOf } from '../site/settings.js';
 import { requireAccount } from './auth.js';
 
 export const router = express.Router();
@@ -35,7 +44,10 @@ export function jackpotView() {
 
 /** Oyun tanimlari - istemci arayuzu bu veriyle kurulur. */
 router.get('/config', (req, res) => {
+  const settings = getSettings();
   res.json({
+    currency: currencyOf(settings),
+    rtp: Number(settings.slot?.rtpTarget ?? 95.8),
     symbols: SYMBOLS,
     wild: WILD,
     scatter: SCATTER,
@@ -81,15 +93,29 @@ router.post('/spin', requireAccount, (req, res) => {
   const nonce = account.fair.nonce;
   account.fair.nonce += 1;
 
+  const settings = getSettings();
   const { error, spin } = applySpin({
     player: account,
     pools: getJackpots(),
     rng,
     bet: req.body?.bet,
-    betLevels: config.betLevels
+    betLevels: config.betLevels,
+    payoutScale: slotPayoutScale(settings)
   });
 
   if (error) return res.status(400).json({ error });
+
+  // Seviye ilerlemesi ve gecmis
+  addXp(account, Math.max(1, Math.round(account.bet / 10)));
+  if (spin.jackpot || spin.totalWin >= account.bet * 20) {
+    recordHistory(account, {
+      type: spin.jackpot ? 'jackpot' : 'bigwin',
+      game: 'Lucky Reels',
+      bet: account.bet,
+      win: round2(spin.totalWin + (spin.jackpot?.amount || 0))
+    });
+  }
+  account.lastSeenAt = Date.now();
 
   applySpinToTasks(account.tasks, {
     spin,

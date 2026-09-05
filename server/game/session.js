@@ -21,9 +21,10 @@ export function round2(value) {
  * @param {object} opts.rng      float()/int() saglayan ureteç
  * @param {number} opts.bet      istenen bahis (bedava donuste yoksayilir)
  * @param {number[]} opts.betLevels gecerli bahis seviyeleri
+ * @param {number} [opts.payoutScale] odeme carpani (admin RTP hedefi)
  * @returns {{ error?: string, spin?: object }}
  */
-export function applySpin({ player, pools, rng, bet, betLevels }) {
+export function applySpin({ player, pools, rng, bet, betLevels, payoutScale = 1 }) {
   const isFree = player.freeSpins.remaining > 0;
 
   if (!isFree) {
@@ -45,7 +46,18 @@ export function applySpin({ player, pools, rng, bet, betLevels }) {
     jackpot.contribute(pools, stake);
   }
 
-  const result = resolveSpin({ rng, totalBet: stake, free: isFree });
+  const raw = resolveSpin({ rng, totalBet: stake, free: isFree });
+
+  // Admin RTP hedefi: odeme tablosu tek noktadan olceklenir.
+  // Jackpot havuzlari bunun disindadir (kendi katki orani vardir).
+  const result =
+    payoutScale === 1
+      ? raw
+      : {
+          ...raw,
+          wins: raw.wins.map((w) => ({ ...w, amount: w.amount * payoutScale })),
+          totalWin: raw.totalWin * payoutScale
+        };
 
   // Jackpot Cards bonusu yalnizca ucretli spinlerde tetiklenir.
   let jackpotWin = null;

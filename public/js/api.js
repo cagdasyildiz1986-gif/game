@@ -68,6 +68,12 @@ export const api = {
     setToken(data.token);
     return data;
   },
+  async avatars() {
+    return request('/auth/avatars');
+  },
+  async updateProfile(patch) {
+    return request('/auth/profile', { method: 'POST', body: patch });
+  },
   async logout() {
     await request('/auth/logout', { method: 'POST' }).catch(() => {});
     setToken(null);
@@ -76,6 +82,9 @@ export const api = {
   /* ---- Site ---- */
   async home() {
     return request('/site/home');
+  },
+  async publicSettings() {
+    return request('/site/settings');
   },
   async games(params = {}) {
     const query = new URLSearchParams(
@@ -100,6 +109,26 @@ export const api = {
   },
   async claimTask(id) {
     return request(`/site/tasks/${encodeURIComponent(id)}/claim`, { method: 'POST' });
+  },
+
+  /* ---- Yönetim ---- */
+  async adminOverview() {
+    return request('/admin/overview');
+  },
+  async adminUsers(query = '') {
+    return request(`/admin/users?q=${encodeURIComponent(query)}`);
+  },
+  async adminAdjustBalance(userId, amount, reason) {
+    return request(`/admin/users/${userId}/balance`, { method: 'POST', body: { amount, reason } });
+  },
+  async adminBan(userId, banned) {
+    return request(`/admin/users/${userId}/ban`, { method: 'POST', body: { banned } });
+  },
+  async adminRole(userId, role) {
+    return request(`/admin/users/${userId}/role`, { method: 'POST', body: { role } });
+  },
+  async adminSaveSettings(settings) {
+    return request('/admin/settings', { method: 'POST', body: { settings } });
   },
   async state() {
     return request('/state');

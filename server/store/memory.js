@@ -6,6 +6,7 @@ import { createPools } from '../game/jackpot.js';
 import { newServerSeed, hashSeed } from '../game/rng.js';
 import { round2 } from '../game/session.js';
 import { initialTaskState } from '../site/tasks.js';
+import { DEFAULT_SETTINGS, mergeSettings } from '../site/settings.js';
 
 /**
  * Hesap ve oturum deposu (bellek ici + JSON dosyasina kalici yazma).
@@ -21,8 +22,12 @@ const state = {
   users: new Map(), // id -> account
   usernames: new Map(), // kucuk harfli kullanici adi -> id
   sessions: new Map(), // token -> id
-  jackpots: createPools()
+  jackpots: createPools(),
+  settings: { ...DEFAULT_SETTINGS },
+  ledger: [] // son bakiye hareketleri (admin gorunumu icin)
 };
+
+const LEDGER_LIMIT = 500;
 
 let saveTimer = null;
 
@@ -39,6 +44,8 @@ export function load() {
     state.usernames = new Map(Object.entries(raw.usernames || {}));
     state.sessions = new Map(Object.entries(raw.sessions || {}));
     state.jackpots = { ...state.jackpots, ...(raw.jackpots || {}) };
+    state.settings = mergeSettings(DEFAULT_SETTINGS, raw.settings);
+    state.ledger = Array.isArray(raw.ledger) ? raw.ledger.slice(-LEDGER_LIMIT) : [];
   } catch (err) {
     console.warn('[store] kayit dosyasi okunamadi:', err.message);
   }
@@ -57,7 +64,9 @@ export function save() {
           users: Object.fromEntries(state.users),
           usernames: Object.fromEntries(state.usernames),
           sessions: Object.fromEntries(state.sessions),
-          jackpots: state.jackpots
+          jackpots: state.jackpots,
+          settings: state.settings,
+          ledger: state.ledger
         })
       );
     } catch (err) {
@@ -92,7 +101,11 @@ function newAccount(name) {
     salt: null,
     passwordHash: null,
     guest: true,
-    balance: config.startBalance,
+    role: 'user',
+    banned: false,
+    avatar: pickAvatar(),
+    xp: 0,
+    balance: state.settings.startBalance ?? config.startBalance,
     bet: config.defaultBet,
     createdAt: Date.now(),
     freeSpins: { remaining: 0, total: 0, multiplier: 1, win: 0 },
@@ -107,9 +120,18 @@ function newAccount(name) {
       nonce: 0
     },
     lastSpinAt: 0,
-    spinWindow: { start: 0, count: 0 }
+    lastSeenAt: Date.now(),
+    spinWindow: { start: 0, count: 0 },
+    history: [],
+    friends: []
   };
 }
+
+const AVATARS = ['🦊', '🐺', '🦁', '🐯', '🐼', '🦅', '🐉', '🦈', '🐍', '🦂', '🐙', '🦉'];
+function pickAvatar() {
+  return AVATARS[crypto.randomInt(AVATARS.length)];
+}
+export { AVATARS };
 
 function issueSession(userId) {
   const token = crypto.randomBytes(24).toString('hex');
@@ -194,12 +216,33 @@ export function getJackpots() {
   return state.jackpots;
 }
 
+export function levelFromXp(xp) {
+  // Her seviye bir oncekinden %35 daha fazla XP ister.
+  let level = 1;
+  let need = 500;
+  let total = 0;
+  while (xp >= total + need && level < 100) {
+    total += need;
+    need = Math.round(need * 1.35);
+    level += 1;
+  }
+  return { level, current: xp - total, need, total };
+}
+
 export function publicAccount(account) {
+  const level = levelFromXp(account.xp || 0);
   return {
     id: account.id,
     name: account.name,
     username: account.username,
     guest: account.guest,
+    role: account.role || 'user',
+    admin: (account.role || 'user') === 'admin',
+    banned: Boolean(account.banned),
+    avatar: account.avatar || '🦊',
+    xp: account.xp || 0,
+    level,
+    createdAt: account.createdAt,
     balance: round2(account.balance),
     bet: account.bet,
     freeSpins: { ...account.freeSpins, win: round2(account.freeSpins.win) },
@@ -211,11 +254,140 @@ export function publicAccount(account) {
     },
     favorites: account.favorites,
     recent: account.recent,
+    friends: account.friends || [],
+    history: (account.history || []).slice(-30).reverse(),
     fair: {
       serverSeedHash: account.fair.serverSeedHash,
       clientSeed: account.fair.clientSeed,
       nonce: account.fair.nonce
     }
+  };
+}
+
+/* ============ Ayarlar ============ */
+
+export function getSettings() {
+  return state.settings;
+}
+
+export function updateSettings(patch) {
+  state.settings = mergeSettings(state.settings, patch);
+  save();
+  return state.settings;
+}
+
+/* ============ Admin ============ */
+
+/** Ilk kayitli hesap veya ADMIN_USERNAME ile eslesen hesap admin olur. */
+export function maybePromoteToAdmin(account) {
+  const configured = (process.env.ADMIN_USERNAME || '').toLowerCase();
+  const registeredCount = [...state.users.values()].filter((u) => u.username).length;
+  if (configured && account.username?.toLowerCase() === configured) {
+    account.role = 'admin';
+    return true;
+  }
+  if (!configured && registeredCount === 1) {
+    account.role = 'admin';
+    return true;
+  }
+  return false;
+}
+
+export function listUsers({ query = '', limit = 50, offset = 0 } = {}) {
+  const q = query.toLocaleLowerCase('tr').trim();
+  const all = [...state.users.values()]
+    .filter((u) => !q || (u.username || u.name || '').toLocaleLowerCase('tr').includes(q))
+    .sort((a, b) => (b.lastSeenAt || b.createdAt) - (a.lastSeenAt || a.createdAt));
+  return { total: all.length, users: all.slice(offset, offset + limit) };
+}
+
+export function getUserById(id) {
+  return state.users.get(id);
+}
+
+/** Admin bakiye tanimlama / dusme. */
+export function adjustBalance(userId, amount, reason, byUsername) {
+  const account = state.users.get(userId);
+  if (!account) return { error: 'Kullanıcı bulunamadı.' };
+  const delta = Number(amount);
+  if (!Number.isFinite(delta) || delta === 0) return { error: 'Geçersiz tutar.' };
+  if (account.balance + delta < 0) return { error: 'Bakiye eksiye düşemez.' };
+
+  account.balance = round2(account.balance + delta);
+  recordLedger({
+    userId,
+    username: account.username || account.name,
+    delta: round2(delta),
+    balance: account.balance,
+    reason: String(reason || 'Admin düzeltmesi').slice(0, 120),
+    by: byUsername || 'admin'
+  });
+  save();
+  return { account };
+}
+
+export function setBanned(userId, banned) {
+  const account = state.users.get(userId);
+  if (!account) return { error: 'Kullanıcı bulunamadı.' };
+  if (account.role === 'admin' && banned) return { error: 'Admin hesabı engellenemez.' };
+  account.banned = Boolean(banned);
+  save();
+  return { account };
+}
+
+export function setRole(userId, role) {
+  const account = state.users.get(userId);
+  if (!account) return { error: 'Kullanıcı bulunamadı.' };
+  if (!['user', 'admin'].includes(role)) return { error: 'Geçersiz rol.' };
+  const admins = [...state.users.values()].filter((u) => u.role === 'admin');
+  if (account.role === 'admin' && role !== 'admin' && admins.length <= 1) {
+    return { error: 'Son admin hesabının rolü değiştirilemez.' };
+  }
+  account.role = role;
+  save();
+  return { account };
+}
+
+function recordLedger(entry) {
+  state.ledger.push({ ...entry, at: Date.now() });
+  if (state.ledger.length > LEDGER_LIMIT) state.ledger.splice(0, state.ledger.length - LEDGER_LIMIT);
+}
+
+export function getLedger(limit = 60) {
+  return state.ledger.slice(-limit).reverse();
+}
+
+/** Oyuncu gecmisine kayit ekler (profil ekraninda gosterilir). */
+export function recordHistory(account, entry) {
+  if (!account.history) account.history = [];
+  account.history.push({ ...entry, at: Date.now() });
+  if (account.history.length > 100) account.history.splice(0, account.history.length - 100);
+}
+
+export function addXp(account, amount) {
+  account.xp = (account.xp || 0) + Math.max(0, Math.round(amount));
+}
+
+export function systemStats() {
+  const users = [...state.users.values()];
+  const registered = users.filter((u) => u.username);
+  const wagered = users.reduce((sum, u) => sum + (u.stats?.wagered || 0), 0);
+  const won = users.reduce((sum, u) => sum + (u.stats?.won || 0), 0);
+  const spins = users.reduce((sum, u) => sum + (u.stats?.spins || 0), 0);
+  const balance = users.reduce((sum, u) => sum + (u.balance || 0), 0);
+  const dayAgo = Date.now() - 86400000;
+  return {
+    totalUsers: users.length,
+    registeredUsers: registered.length,
+    guestUsers: users.length - registered.length,
+    activeToday: users.filter((u) => (u.lastSeenAt || 0) > dayAgo).length,
+    bannedUsers: users.filter((u) => u.banned).length,
+    totalBalance: round2(balance),
+    wagered: round2(wagered),
+    won: round2(won),
+    spins,
+    houseEdge: wagered > 0 ? round2(((wagered - won) / wagered) * 100) : 0,
+    jackpots: { ...state.jackpots }
   };
 }
 

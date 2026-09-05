@@ -14,11 +14,16 @@ const state = {
   home: null,
   categories: [],
   backend: api,
-  route: null
+  route: null,
+  settings: null,
+  avatars: []
 };
 
 const $ = (id) => document.getElementById(id);
-const fmt = (n) => Number(n || 0).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+let currency = { symbol: '₺', locale: 'tr-TR' };
+const fmt = (n) =>
+  Number(n || 0).toLocaleString(currency.locale, { maximumFractionDigits: 0 });
+const money = (n) => `${currency.symbol}${fmt(n)}`;
 const VOLATILITY = { dusuk: 'Düşük volatilite', orta: 'Orta volatilite', yuksek: 'Yüksek volatilite' };
 
 function toast(message, gold = false) {
@@ -242,6 +247,31 @@ function renderHome() {
 
   ${jackpotBanner(data.jackpots)}
 
+  <section class="section">
+    <div class="section-head">
+      <h3 class="section-title"><span class="bar"></span>Canlı Masalar</h3>
+      <button class="section-more" data-live="1">Masalara Git ${icon('chevron')}</button>
+    </div>
+    <div class="rail" style="grid-auto-columns:62%">
+      <button class="table-card" data-live="holdem" style="margin:0">
+        <div class="table-icon">🂡</div>
+        <div style="flex:1;min-width:0">
+          <div class="table-name">Texas Hold'em</div>
+          <div class="table-meta">Oyuncuya karşı · ev oynamaz</div>
+        </div>
+        ${icon('chevron')}
+      </button>
+      <button class="table-card" data-live="blackjack" style="margin:0">
+        <div class="table-icon">🃏</div>
+        <div style="flex:1;min-width:0">
+          <div class="table-name">Blackjack</div>
+          <div class="table-meta">Krupiyeye karşı · 3:2 ödeme</div>
+        </div>
+        ${icon('chevron')}
+      </button>
+    </div>
+  </section>
+
   ${data.rows
     .filter((row) => row.games.length)
     .map(
@@ -452,20 +482,40 @@ async function renderTasks() {
   ${footer()}`;
 }
 
-function renderProfile() {
+async function renderProfile() {
   const p = state.player;
   if (!p) return '';
   const initial = (p.username || p.name || 'M').charAt(0).toLocaleUpperCase('tr');
+  const level = p.level || { level: 1, current: 0, need: 500 };
   const rtp = p.stats.wagered > 0 ? ((p.stats.won / p.stats.wagered) * 100).toFixed(1) : '—';
+  const net = p.stats.won - p.stats.wagered;
+
+  if (!state.avatars.length) {
+    try {
+      state.avatars = (await state.backend.avatars()).avatars;
+    } catch {
+      state.avatars = [];
+    }
+  }
+
+  const historyRows = (p.history || []).slice(0, 12);
 
   return `
   <div class="page-head"><h1 class="page-title">Profil</h1></div>
 
   <div class="profile-head">
-    <div class="avatar">${initial}</div>
+    <button class="avatar" id="btn-avatar" style="border:none;cursor:pointer">
+      ${p.avatar || initial}
+    </button>
     <div style="flex:1;min-width:0">
-      <div class="profile-name">${escapeHtml(p.username || 'Misafir Oyuncu')}</div>
-      <div class="profile-tag">${p.guest ? 'Misafir hesap · kaydet ki kaybolmasın' : 'Kayıtlı üye'}</div>
+      <div class="profile-name">${escapeHtml(p.username || 'Misafir Oyuncu')}
+        ${p.admin ? '<span class="badge badge-hot" style="margin-left:6px">YÖNETİCİ</span>' : ''}</div>
+      <div class="profile-tag">${p.guest ? 'Misafir hesap · kaydet ki kaybolmasın' : `Üyelik: ${new Date(p.createdAt).toLocaleDateString('tr-TR')}`}</div>
+      <div class="level-row">
+        <span class="level-badge">SV ${level.level}</span>
+        <div class="level-bar"><i style="width:${Math.min(100, (level.current / level.need) * 100)}%"></i></div>
+        <span class="level-xp">${fmt(level.current)}/${fmt(level.need)}</span>
+      </div>
     </div>
     ${
       p.guest
@@ -475,38 +525,120 @@ function renderProfile() {
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="stat-label">Bakiye</div><div class="stat-value">${fmt(p.balance)}</div></div>
+    <div class="stat"><div class="stat-label">Bakiye</div><div class="stat-value">${money(p.balance)}</div></div>
     <div class="stat"><div class="stat-label">Toplam Dönüş</div><div class="stat-value">${fmt(p.stats.spins)}</div></div>
     <div class="stat"><div class="stat-label">En Büyük Kazanç</div><div class="stat-value">${fmt(p.stats.biggestWin)}</div></div>
-    <div class="stat"><div class="stat-label">Oturum Getirisi</div><div class="stat-value">${rtp === '—' ? '—' : `%${rtp}`}</div></div>
+    <div class="stat"><div class="stat-label">Net Sonuç</div>
+      <div class="stat-value" style="color:${net >= 0 ? 'var(--teal)' : '#ff9daa'}">
+        ${net >= 0 ? '+' : ''}${fmt(net)}
+      </div></div>
+    <div class="stat"><div class="stat-label">Toplam Bahis</div><div class="stat-value">${fmt(p.stats.wagered)}</div></div>
+    <div class="stat"><div class="stat-label">Getiri Oranı</div><div class="stat-value">${rtp === '—' ? '—' : `%${rtp}`}</div></div>
+    <div class="stat"><div class="stat-label">Favoriler</div><div class="stat-value">${p.favorites.length}</div></div>
+    <div class="stat"><div class="stat-label">Seviye</div><div class="stat-value">${level.level}</div></div>
   </div>
 
   ${
     p.guest
       ? `<div class="notice" style="margin-top:16px">
           Misafir olarak oynuyorsun. Bu cihazın verisi silinirse bakiyen kaybolur.
-          <b>Ücretsiz hesap</b> açarsan bakiyen ve istatistiklerin korunur — üstelik
-          2.500 kredi görev ödülü kazanırsın.
+          <b>Ücretsiz hesap</b> açarsan bakiyen ve istatistiklerin sunucuda korunur —
+          üstelik 2.500 kredi görev ödülü kazanırsın.
         </div>`
       : ''
   }
 
   <section class="section">
-    <div class="section-head"><h3 class="section-title"><span class="bar"></span>Favorilerim</h3>
-      <button class="section-more" data-route="#/kategori/favoriler">Tümü ${icon('chevron')}</button></div>
-    <p class="page-count">${p.favorites.length} oyun favorilerinde</p>
+    <div class="section-head"><h3 class="section-title"><span class="bar"></span>Son Hareketler</h3></div>
+    ${
+      historyRows.length
+        ? `<div class="panel" style="padding:12px">
+            ${historyRows
+              .map(
+                (h) => `<div class="hist-row">
+                  <span class="hist-icon">${h.type === 'jackpot' ? '👑' : h.type === 'table' ? '🂡' : '🎰'}</span>
+                  <div style="flex:1;min-width:0">
+                    <div class="hist-name">${escapeHtml(h.game || 'Oyun')}</div>
+                    <div class="hist-time">${new Date(h.at).toLocaleString('tr-TR')}</div>
+                  </div>
+                  <b class="${(h.net ?? h.win - h.bet) >= 0 ? 'hist-plus' : 'hist-minus'}">
+                    ${(h.net ?? h.win - h.bet) >= 0 ? '+' : ''}${fmt(h.net ?? h.win - h.bet)}
+                  </b>
+                </div>`
+              )
+              .join('')}
+          </div>`
+        : '<p class="page-count">Henüz kayıtlı hareket yok. Büyük kazançlar ve masa oturumları burada görünür.</p>'
+    }
   </section>
 
   <section class="section">
     <div class="section-head"><h3 class="section-title"><span class="bar"></span>Hesap</h3></div>
     <div class="panel" style="padding:4px 0">
+      ${
+        p.admin
+          ? `<a class="btn btn-ghost btn-block" style="justify-content:flex-start;border:none" href="admin.html">
+              ${icon('shield')} Yönetim Paneli</a>`
+          : ''
+      }
       <button class="btn btn-ghost btn-block" style="justify-content:flex-start;border:none"
-        data-route="#/sayfa/adalet">${icon('shield')} Doğrulanabilir Adalet</button>
+        data-route="#/kategori/favoriler">${icon('heart')} Favorilerim</button>
+      <button class="btn btn-ghost btn-block" style="justify-content:flex-start;border:none"
+        data-route="#/gorevler">${icon('trophy')} Görevlerim</button>
+      <button class="btn btn-ghost btn-block" style="justify-content:flex-start;border:none"
+        data-route="#/sayfa/adalet">${icon('lock')} Doğrulanabilir Adalet</button>
       <button class="btn btn-ghost btn-block" style="justify-content:flex-start;border:none"
         data-route="#/sayfa/sorumlu-oyun">${icon('info')} Sorumlu Oyun</button>
     </div>
   </section>
   ${footer()}`;
+}
+
+/** Avatar secme sayfasi. */
+function openAvatarPicker() {
+  const host = $('sheet-host');
+  host.innerHTML = `
+  <div class="sheet" id="avatar-sheet">
+    <div class="sheet-card">
+      <div class="sheet-grip"></div>
+      <h2 class="sheet-title">Avatarını Seç</h2>
+      <div class="avatar-grid">
+        ${state.avatars
+          .map(
+            (a) =>
+              `<button class="avatar-pick${a === state.player.avatar ? ' on' : ''}" data-avatar="${a}">${a}</button>`
+          )
+          .join('')}
+      </div>
+      <div class="field" style="margin-top:14px">
+        <label for="pf-name">Görünen ad</label>
+        <input id="pf-name" value="${escapeHtml(state.player.name || '')}" maxlength="24">
+      </div>
+      <button class="btn btn-gold btn-block" id="pf-save">Kaydet</button>
+      <button class="btn btn-ghost btn-block" id="pf-cancel"
+        style="margin-top:8px;border:none;color:var(--dim)">Vazgeç</button>
+    </div>
+  </div>`;
+
+  let picked = state.player.avatar;
+  host.querySelectorAll('[data-avatar]').forEach((btn) => {
+    btn.onclick = () => {
+      picked = btn.dataset.avatar;
+      host.querySelectorAll('.avatar-pick').forEach((b) => b.classList.toggle('on', b === btn));
+    };
+  });
+  $('pf-cancel').onclick = () => (host.innerHTML = '');
+  $('pf-save').onclick = async () => {
+    try {
+      const data = await state.backend.updateProfile({ avatar: picked, name: $('pf-name').value });
+      state.player = data.player;
+      host.innerHTML = '';
+      toast('Profil güncellendi', true);
+      render();
+    } catch (err) {
+      toast(err.message);
+    }
+  };
 }
 
 const PAGES = {
@@ -700,7 +832,7 @@ async function render() {
     } else if (segments[0] === 'gorevler') {
       view.innerHTML = await renderTasks();
     } else if (segments[0] === 'profil') {
-      view.innerHTML = renderProfile();
+      view.innerHTML = await renderProfile();
     } else if (segments[0] === 'sayfa') {
       view.innerHTML = renderPage(segments[1]);
     } else if (segments[0] === 'kayit' || segments[0] === 'giris') {
@@ -751,7 +883,7 @@ function startHeroCarousel() {
 /* ═════════ Ust bar ve alt bar ═════════ */
 
 function renderChrome() {
-  if (state.player) $('balance').textContent = fmt(state.player.balance);
+  if (state.player) $('balance').textContent = money(state.player.balance);
 
   $('btn-account').innerHTML = icon('user');
   $('btn-account').classList.toggle('has-dot', Boolean(state.player?.guest));
@@ -858,9 +990,12 @@ function bindGlobalEvents() {
   };
 
   document.addEventListener('click', (e) => {
-    if (e.target.id === 'btn-logout') {
+    if (e.target.closest('#btn-logout')) {
       state.backend.logout().then(() => location.reload());
     }
+    if (e.target.closest('#btn-avatar')) openAvatarPicker();
+    const live = e.target.closest('[data-live]');
+    if (live) location.href = 'live.html';
   });
 
   window.addEventListener('hashchange', render);
@@ -879,6 +1014,12 @@ async function boot() {
   try {
     const session = await state.backend.session();
     state.player = session.player;
+    try {
+      state.settings = await state.backend.publicSettings();
+      if (state.settings?.currency) currency = state.settings.currency;
+    } catch {
+      /* demo modunda ayar ucu olmayabilir */
+    }
   } catch (err) {
     toast('Sunucuya bağlanılamadı: ' + err.message);
   }

@@ -21,8 +21,10 @@ let backend = api;
 
 /* ================== Yardimcilar ================== */
 const $ = (id) => document.getElementById(id);
+let currency = { symbol: '₺', locale: 'tr-TR' };
 const fmt = (n) =>
-  Number(n).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  Number(n).toLocaleString(currency.locale, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+const money = (n) => `${currency.symbol}${fmt(n)}`;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function toast(message, ms = 2200) {
@@ -81,8 +83,8 @@ function renderJackpots(jackpots) {
 
 function renderPlayer(player) {
   state.player = player;
-  $('balance').textContent = fmt(player.balance);
-  $('bet').textContent = fmt(player.bet);
+  $('balance').textContent = money(player.balance);
+  $('bet').textContent = money(player.bet);
 
   const fs = player.freeSpins;
   $('fs-badge').hidden = fs.remaining <= 0;
@@ -497,7 +499,8 @@ function renderStats() {
     <div class="kv"><span>Toplam kazanç</span><span>${fmt(s.won)}</span></div>
     <div class="kv"><span>En büyük kazanç</span><span>${fmt(s.biggestWin)}</span></div>
     <div class="kv"><span>Oturum getirisi</span><span>${rtp === '—' ? '—' : `%${rtp}`}</span></div>
-    <p class="pt-note">Teorik RTP yaklaşık %95,8'dir; kısa oturumlarda sapma normaldir.</p>
+    <p class="pt-note">Teorik RTP %${(state.config.rtp ?? 95.8).toFixed(1).replace('.', ',')};
+      kısa oturumlarda sapma normaldir.</p>
   `;
 }
 
@@ -641,6 +644,7 @@ async function boot() {
       backend.jackpots()
     ]);
     state.config = config;
+    if (config.currency) currency = config.currency;
     renderJackpots(session.jackpots || pools.jackpots);
 
     $('loader').hidden = true;

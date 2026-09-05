@@ -481,6 +481,33 @@ body::before {
 .profile-name { font-size: 18px; font-weight: 800; }
 .profile-tag { font-size: 11.5px; color: var(--dim); margin-top: 2px; }
 
+.level-row { display: flex; align-items: center; gap: 7px; margin-top: 7px; }
+.level-badge {
+  font-size: 9.5px; font-weight: 900; letter-spacing: .5px;
+  background: var(--aurum); color: #2a1500; padding: 2px 7px; border-radius: 99px;
+}
+.level-bar { flex: 1; height: 5px; border-radius: 99px; background: rgba(255,255,255,.1); overflow: hidden; }
+.level-bar i { display: block; height: 100%; background: var(--ember); border-radius: 99px; }
+.level-xp { font-size: 9.5px; color: var(--dim); white-space: nowrap; }
+
+.hist-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0; border-bottom: 1px dashed rgba(255,255,255,.08);
+}
+.hist-row:last-child { border-bottom: none; }
+.hist-icon { font-size: 18px; width: 26px; text-align: center; }
+.hist-name { font-size: 12.5px; font-weight: 600; }
+.hist-time { font-size: 10px; color: var(--dim); margin-top: 1px; }
+.hist-plus { color: var(--teal); font-variant-numeric: tabular-nums; }
+.hist-minus { color: #ff9daa; font-variant-numeric: tabular-nums; }
+
+.avatar-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.avatar-pick {
+  aspect-ratio: 1; border-radius: 12px; font-size: 22px;
+  border: 1px solid var(--line); background: var(--surface); cursor: pointer;
+}
+.avatar-pick.on { border-color: var(--gold); background: rgba(245,196,81,.16); }
+
 .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; margin-top: 12px; }
 .stat { padding: 12px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--line); }
 .stat-label { font-size: 10px; color: var(--dim); letter-spacing: .8px; text-transform: uppercase; }
