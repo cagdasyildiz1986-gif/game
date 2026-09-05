@@ -50,6 +50,7 @@ function view(game, account) {
     rtp: game.rtp,
     playable: game.playable,
     engine: game.engine,
+    page: game.page,
     isNew: game.isNew,
     isHot: game.isHot,
     hasJackpot: game.hasJackpot,

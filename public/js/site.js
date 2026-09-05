@@ -460,7 +460,7 @@ async function renderGameDetail(id) {
       <div class="detail-actions">
         ${
           game.playable
-            ? `<a class="btn btn-gold btn-block" href="game.html">Oyna</a>`
+            ? `<a class="btn btn-gold btn-block" href="${game.page || 'game.html'}">Oyna</a>`
             : `<button class="btn btn-block" disabled>Yakında</button>`
         }
         <button class="btn" data-fav="${game.id}" aria-label="Favori">${icon('heart')}</button>
@@ -473,7 +473,7 @@ async function renderGameDetail(id) {
       ? ''
       : `<div class="notice">
           Bu oyun katalogda yer alıyor ancak motoru henüz hazır değil.
-          Şu an tam olarak oynanabilen oyun <b>Lucky Reels</b>.
+          Şu an tam olarak oynanabilen oyunlar <b>Lucky Reels</b> ve <b>7 Hot Çan Zinciri</b>.
           Katalogdaki diğer oyunlar site yapısını ve kategori akışını göstermek için duruyor.
         </div>`
   }

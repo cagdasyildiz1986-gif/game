@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>7 HOT · Çan Zinciri · AURUM</title>
+<meta name="description" content="5x4 · 40 hat · Çan Zinciri tut-ve-kazan özelliği. Sanal kredi ile oynanır, gerçek para yoktur.">
+<meta name="theme-color" content="#0b0716">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="stylesheet" href="css/sevenhot.css">
+<script>
+  try { document.documentElement.dataset.theme = localStorage.getItem('aurum-theme') || 'light'; } catch (e) {}
+</script>
+</head>
+<body class="hot">
+
+<div id="sprite-host" aria-hidden="true"></div>
+
+<div id="loader" class="loader">
+  <div class="loader-logo">7 <span>HOT</span></div>
+  <div class="loader-bar"><i></i></div>
+  <p class="loader-note">Sanal kredi ile oynanır · Gerçek para yoktur</p>
+</div>
+
+<div id="app" class="app" hidden>
+
+  <header class="topbar">
+    <a class="icon-btn" href="./#/oyun/7-hot-can-zinciri" aria-label="Lobiye dön" id="btn-back">‹</a>
+    <button class="icon-btn" id="btn-menu" aria-label="Menü">☰</button>
+    <div class="jackpots hot-jackpots" id="jackpots"></div>
+    <button class="icon-btn" id="btn-sound" aria-label="Ses">🔊</button>
+  </header>
+
+  <div class="demo-badge" id="demo-badge" hidden>DEMO · oyun motoru tarayıcıda çalışıyor</div>
+
+  <main class="stage">
+    <div class="logo hot-logo">7 <span>HOT</span> <i>ÇAN ZİNCİRİ</i></div>
+
+    <div class="machine">
+      <!-- Bedava dönüş sayacı -->
+      <div class="fs-hud" id="fs-badge" hidden>
+        <div class="fs-hud-item">
+          <span class="fs-hud-label">KALAN</span>
+          <span class="fs-hud-value" id="fs-count">0</span>
+        </div>
+        <div class="fs-hud-sep"></div>
+        <div class="fs-hud-item">
+          <span class="fs-hud-label">TOPLAM</span>
+          <span class="fs-hud-value" id="fs-total">0</span>
+        </div>
+      </div>
+
+      <!-- Çan Zinciri sayacı -->
+      <div class="bell-hud" id="bell-hud" hidden>
+        <div class="bell-hud-title">ÇAN ZİNCİRİ</div>
+        <div class="bell-hud-row">
+          <div class="bell-hud-item">
+            <span class="bell-hud-label">KALAN DÖNÜŞ</span>
+            <span class="bell-hud-value" id="bell-respins">3</span>
+          </div>
+          <div class="bell-hud-item">
+            <span class="bell-hud-label">ÇAN</span>
+            <span class="bell-hud-value"><span id="bell-filled">5</span>/20</span>
+          </div>
+          <div class="bell-hud-item">
+            <span class="bell-hud-label">TOPLAM</span>
+            <span class="bell-hud-value gold" id="bell-total">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="frame">
+        <div class="reels" id="reels"></div>
+        <svg class="lines" id="lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="fx" id="fx"></div>
+      </div>
+
+      <div class="winbar">
+        <span class="winbar-label">KAZANÇ</span>
+        <span class="winbar-value" id="win-value">0</span>
+        <span class="winbar-info" id="win-info"></span>
+      </div>
+    </div>
+  </main>
+
+  <footer class="controls">
+    <div class="meters">
+      <div class="meter">
+        <span class="meter-label">BAKİYE</span>
+        <span class="meter-value" id="balance">0</span>
+      </div>
+      <div class="meter">
+        <span class="meter-label">BAHİS</span>
+        <span class="meter-value" id="bet">0</span>
+      </div>
+    </div>
+
+    <div class="pad">
+      <div class="bet-controls">
+        <button class="round-btn" id="bet-down" aria-label="Bahis azalt">−</button>
+        <button class="round-btn" id="bet-up" aria-label="Bahis artır">+</button>
+      </div>
+
+      <button class="spin-btn" id="spin" aria-label="Çevir">
+        <span class="spin-inner"><span id="spin-label">ÇEVİR</span></span>
+      </button>
+
+      <div class="aux-controls">
+        <button class="round-btn" id="btn-turbo" aria-label="Turbo mod">⚡</button>
+        <button class="round-btn" id="btn-auto" aria-label="Otomatik oyun">A</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ===== Modallar ===== -->
+
+<div class="modal" id="modal-paytable" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>Ödeme Tablosu</h2>
+      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
+    </header>
+    <div class="modal-body" id="paytable-body"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal-menu" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>Menü</h2>
+      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
+    </header>
+    <div class="modal-body">
+      <button class="wide-btn" id="menu-paytable">📋 Ödeme Tablosu &amp; Kurallar</button>
+      <button class="wide-btn" id="menu-stats">📊 İstatistikler</button>
+      <a class="wide-btn" href="./#/oyun/7-hot-can-zinciri" style="text-decoration:none;display:block;text-align:center">↩︎ Oyun Sayfasına Dön</a>
+      <p class="fineprint">
+        Bu oyun yalnızca eğlence amaçlıdır. Sanal kredilerin parasal karşılığı yoktur ve
+        gerçek para ile satın alınamaz veya nakde çevrilemez. 18+
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal-stats" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>İstatistikler</h2>
+      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
+    </header>
+    <div class="modal-body" id="stats-body"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal-auto" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>Otomatik Oyun</h2>
+      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
+    </header>
+    <div class="modal-body">
+      <p class="muted">Kaç dönüş otomatik oynansın?</p>
+      <div class="chip-row" id="auto-options"></div>
+      <button class="wide-btn danger" id="auto-stop">Otomatik Oyunu Durdur</button>
+    </div>
+  </div>
+</div>
+
+<!-- Çan Zinciri GİRİŞ ekranı -->
+<div class="fs-screen bell-screen" id="bell-intro" hidden>
+  <div class="fs-rays bell-rays"></div>
+  <div class="bell-parade" id="bell-parade"></div>
+  <div class="fs-card bell-card">
+    <div class="fs-ribbon bell-ribbon">5 ÇAN</div>
+    <div class="fs-headline">ÇAN ZİNCİRİ</div>
+    <div class="bell-intro-note">Çanlar kilitlenir · Her yeni çan sayacı sıfırlar</div>
+    <div class="fs-big bell-big">3</div>
+    <div class="fs-sub">DÖNÜŞ HAKKI</div>
+    <button class="fs-cta" id="bell-intro-start">BAŞLA</button>
+  </div>
+</div>
+
+<!-- Çan Zinciri BİTİŞ ekranı -->
+<div class="fs-screen bell-screen" id="bell-outro" hidden>
+  <div class="fs-rays bell-rays"></div>
+  <div class="fs-card bell-card">
+    <div class="fs-headline" id="bell-outro-title">ÇAN ZİNCİRİ BİTTİ</div>
+    <div class="fs-sub" style="margin-bottom:6px">TOPLAM KAZANÇ</div>
+    <div class="fs-big fs-big-win" id="bell-outro-total">0</div>
+    <div class="bell-outro-jackpots" id="bell-outro-jackpots"></div>
+    <div class="fs-stats">
+      <div><span id="bell-outro-cells">0</span><i>çan</i></div>
+      <div><span id="bell-outro-spins">0</span><i>respin</i></div>
+      <div><span id="bell-outro-mult">x1</span><i>çarpan</i></div>
+    </div>
+    <button class="fs-cta" id="bell-outro-collect">TOPLA</button>
+  </div>
+</div>
+
+<!-- Bedava dönüş GİRİŞ ekranı -->
+<div class="fs-screen fs-intro" id="fs-intro" hidden>
+  <div class="fs-rays"></div>
+  <div class="fs-scatters" id="fs-scatters"></div>
+  <div class="fs-card">
+    <div class="fs-ribbon">SCATTER</div>
+    <div class="fs-headline">KAZANDIN!</div>
+    <div class="fs-big" id="fs-intro-count">0</div>
+    <div class="fs-sub">BEDAVA DÖNÜŞ</div>
+    <button class="fs-cta" id="fs-intro-start">BAŞLA</button>
+  </div>
+</div>
+
+<!-- Bedava dönüş BİTİŞ ekranı -->
+<div class="fs-screen fs-outro" id="fs-outro" hidden>
+  <div class="fs-rays"></div>
+  <div class="fs-card">
+    <div class="fs-headline">BEDAVA DÖNÜŞ BİTTİ</div>
+    <div class="fs-sub" style="margin-bottom:6px">TOPLAM KAZANÇ</div>
+    <div class="fs-big fs-big-win" id="fs-outro-total">0</div>
+    <div class="fs-stats">
+      <div><span id="fs-outro-spins">0</span><i>dönüş</i></div>
+      <div><span id="fs-outro-best">0</span><i>en iyi</i></div>
+      <div><span id="fs-outro-mult">x0</span><i>bahsin katı</i></div>
+    </div>
+    <button class="fs-cta" id="fs-outro-collect">TOPLA</button>
+  </div>
+</div>
+
+<div class="celebration" id="celebration" hidden>
+  <div class="celebration-inner">
+    <div class="celebration-title" id="celebration-title">BÜYÜK KAZANÇ</div>
+    <div class="celebration-amount" id="celebration-amount">0</div>
+    <div class="celebration-sub" id="celebration-sub">dokunarak devam et</div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="js/env.js"></script>
+<script type="module" src="js/sevenhot.js"></script>
+</body>
+</html>

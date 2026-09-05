@@ -63,6 +63,7 @@ export const MOTIFS = [
  */
 const RAW = [
   ['Lucky Reels', ['slot', 'populer', 'jackpot'], 'ember', 'fruit', 'yuksek', 95.8, 'lucky-reels'],
+  ['7 Hot Çan Zinciri', ['slot', 'populer', 'yeni', 'jackpot'], 'lava', 'bell', 'yuksek', 95.6, 'sevenhot'],
 
   ['Altın Firavun', ['slot', 'populer'], 'sand', 'pyramid', 'yuksek', 96.1],
   ['Ejder Hazinesi', ['slot', 'populer', 'jackpot'], 'crimson', 'dragon', 'yuksek', 95.4],
@@ -195,6 +196,12 @@ function hash(str) {
   return Math.abs(h);
 }
 
+/** Oynanabilir motorların arayüz sayfaları. */
+export const ENGINE_PAGES = {
+  'lucky-reels': 'game.html',
+  sevenhot: 'sevenhot.html'
+};
+
 export const GAMES = RAW.map(([name, categories, palette, motif, volatility, rtp, engine], index) => {
   const id = slugify(name);
   const h = hash(id);
@@ -209,6 +216,7 @@ export const GAMES = RAW.map(([name, categories, palette, motif, volatility, rtp
     rtp,
     engine: engine || null,
     playable: Boolean(engine),
+    page: engine ? ENGINE_PAGES[engine] || null : null,
     isNew: categories.includes('yeni'),
     isHot: categories.includes('populer'),
     hasJackpot: categories.includes('jackpot'),

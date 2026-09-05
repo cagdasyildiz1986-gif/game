@@ -142,6 +142,15 @@ export const api = {
   async jackpots() {
     return request('/jackpots');
   },
+  /* ---- 7 HOT · Çan Zinciri ---- */
+  hot: {
+    config: () => request('/sevenhot/config'),
+    state: () => request('/sevenhot/state'),
+    setBet: (bet) => request('/sevenhot/bet', { method: 'POST', body: { bet } }),
+    spin: (bet) => request('/sevenhot/spin', { method: 'POST', body: { bet } }),
+    jackpots: (bet) => request(`/sevenhot/jackpots?bet=${encodeURIComponent(bet)}`)
+  },
+
   async setClientSeed(clientSeed) {
     return request('/fair/client-seed', { method: 'POST', body: { clientSeed } });
   },
