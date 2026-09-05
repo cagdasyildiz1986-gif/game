@@ -5,13 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>7 HOT · Çan Zinciri · AURUM</title>
 <meta name="description" content="5x4 · 40 hat · Çan Zinciri tut-ve-kazan özelliği. Sanal kredi ile oynanır, gerçek para yoktur.">
-<meta name="theme-color" content="#0b0716">
+<meta name="theme-color" content="#0a1024">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="preload" as="image" href="img/sevenhot-bg.webp">
+<link rel="preload" as="image" href="img/sevenhot-logo.webp">
 <link rel="stylesheet" href="css/sevenhot.css">
 <script>
   try { document.documentElement.dataset.theme = localStorage.getItem('aurum-theme') || 'light'; } catch (e) {}
@@ -20,9 +22,10 @@
 <body class="hot">
 
 <div id="sprite-host" aria-hidden="true"></div>
+<div class="stage-bg" aria-hidden="true"></div>
 
 <div id="loader" class="loader">
-  <div class="loader-logo">7 <span>HOT</span></div>
+  <img class="loader-logo-img" src="img/sevenhot-logo.webp" alt="7 HOT · Çan Zinciri">
   <div class="loader-bar"><i></i></div>
   <p class="loader-note">Sanal kredi ile oynanır · Gerçek para yoktur</p>
 </div>
@@ -30,16 +33,27 @@
 <div id="app" class="app" hidden>
 
   <header class="topbar">
-    <a class="icon-btn" href="./#/oyun/7-hot-can-zinciri" aria-label="Lobiye dön" id="btn-back">‹</a>
-    <button class="icon-btn" id="btn-menu" aria-label="Menü">☰</button>
+    <a class="glass-btn" href="./#/oyun/7-hot-can-zinciri" aria-label="Lobiye dön" id="btn-back">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"
+        stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+        stroke-linejoin="round" fill="none"/></svg>
+    </a>
+    <button class="glass-btn" id="btn-menu" aria-label="Menü">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"
+        stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
+    </button>
     <div class="jackpots hot-jackpots" id="jackpots"></div>
-    <button class="icon-btn" id="btn-sound" aria-label="Ses">🔊</button>
+    <button class="glass-btn" id="btn-sound" aria-label="Ses">
+      <svg viewBox="0 0 24 24" aria-hidden="true" id="icon-sound"></svg>
+    </button>
   </header>
 
   <div class="demo-badge" id="demo-badge" hidden>DEMO · oyun motoru tarayıcıda çalışıyor</div>
 
   <main class="stage">
-    <div class="logo hot-logo">7 <span>HOT</span> <i>ÇAN ZİNCİRİ</i></div>
+    <div class="brand">
+      <img class="brand-logo" src="img/sevenhot-logo.webp" alt="7 HOT · Çan Zinciri">
+    </div>
 
     <div class="machine">
       <!-- Bedava dönüş sayacı -->
@@ -101,19 +115,29 @@
     </div>
 
     <div class="pad">
-      <div class="bet-controls">
-        <button class="round-btn" id="bet-down" aria-label="Bahis azalt">−</button>
-        <button class="round-btn" id="bet-up" aria-label="Bahis artır">+</button>
-      </div>
+      <button class="round-btn" id="bet-down" aria-label="Bahis azalt">−</button>
+      <button class="round-btn" id="bet-up" aria-label="Bahis artır">+</button>
 
       <button class="spin-btn" id="spin" aria-label="Çevir">
-        <span class="spin-inner"><span id="spin-label">ÇEVİR</span></span>
+        <span class="spin-ring"></span>
+        <span class="spin-inner">
+          <svg class="spin-arrows" viewBox="0 0 48 48" aria-hidden="true"><path
+            d="M24 8a16 16 0 0 1 15 11l-5-1 6 8 6-8-4 1A21 21 0 0 0 24 3zM24 40A16 16 0 0 1 9 29l5 1-6-8-6 8 4-1A21 21 0 0 0 24 45z"
+            fill="currentColor"/></svg>
+          <span class="spin-caption" id="spin-label">ÇEVİR</span>
+        </span>
       </button>
 
-      <div class="aux-controls">
-        <button class="round-btn" id="btn-turbo" aria-label="Turbo mod">⚡</button>
-        <button class="round-btn" id="btn-auto" aria-label="Otomatik oyun">A</button>
-      </div>
+      <button class="round-btn" id="btn-turbo" aria-label="Turbo mod">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z"
+          fill="currentColor"/></svg>
+      </button>
+      <button class="round-btn" id="btn-auto" aria-label="Otomatik oyun">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M9 16l3-8 3 8M10 13.5h4" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
     </div>
   </footer>
 </div>

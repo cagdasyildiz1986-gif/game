@@ -1,60 +1,324 @@
-/* ═══ 7 HOT · Çan Zinciri — Lucky Reels kabinini 5x4'e ve çan turuna uyarlar ═══ */
+/* ═══════════════════════════════════════════════════════════════
+   7 HOT · ÇAN ZİNCİRİ
+   Gönderilen maket tasarımının uygulaması: koyu salon arka planı,
+   oymalı altın çerçeve, renkli jackpot çipleri, altın kenarlı
+   paneller ve mavi çevir düğmesi.
+   ═══════════════════════════════════════════════════════════════ */
 @import url('style.css');
 
 :root {
-  --hot-fire: #ff7a18;
-  --hot-fire-2: #ffb347;
-  --hot-deep: #2a1206;
+  --g-hi: #fff3cf;
+  --g-1: #ffdd80;
+  --g-2: #e8a922;
+  --g-3: #a86f0a;
+  --g-4: #5e3c02;
+  --panel: rgba(6, 12, 34, .74);
+  --panel-line: rgba(255, 208, 110, .38);
 }
 
-/* ---------- Marka ---------- */
-.hot-logo {
-  display: flex; align-items: baseline; gap: 8px;
-  letter-spacing: 1.5px;
+/* ---------- Sahne ---------- */
+body.hot {
+  background: #060a1c;
+  color: #f0eeff;
 }
-.hot-logo span {
-  background: linear-gradient(180deg, #ffd45e, #ff5a00);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
+.stage-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(4, 8, 24, .34) 0%, rgba(4, 8, 24, .55) 50%, rgba(3, 6, 18, .9) 100%),
+    url('../img/sevenhot-bg.webp') center 32% / cover no-repeat;
 }
-.hot-logo i {
-  font-style: normal;
-  font-size: .42em;
-  letter-spacing: 2.5px;
-  color: var(--muted);
-  font-weight: 700;
-}
-.loader-logo span {
-  background: linear-gradient(180deg, #ffd45e, #ff5a00);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
+.hot .loader { background: transparent; }
+.loader-logo-img { width: min(80vw, 340px); height: auto; }
+.hot .loader-note { color: rgba(226, 222, 255, .68); }
+.hot .loader-bar { background: rgba(255, 255, 255, .12); }
+.hot .loader-bar i { background: linear-gradient(90deg, var(--g-1), var(--g-2)); }
 
-/* ---------- Dört kademeli jackpot şeridi ---------- */
+.hot .app { max-width: 640px; }
+
+/* ---------- Üst şerit ---------- */
+.hot .topbar {
+  background: transparent;
+  border-bottom: 0;
+  box-shadow: none;
+  gap: 6px;
+}
+.glass-btn {
+  width: 40px; height: 40px; flex: 0 0 40px;
+  display: grid; place-items: center;
+  border-radius: 12px;
+  border: 1.5px solid var(--panel-line);
+  background: var(--panel);
+  color: var(--g-1);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .12);
+  cursor: pointer;
+  text-decoration: none;
+}
+.glass-btn:active { transform: scale(.93); }
+.glass-btn svg { width: 21px; height: 21px; }
+
+/* ---------- Jackpot çipleri ---------- */
+.hot-jackpots {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  min-width: 0;
+}
 .hot-jackpots .jp {
   position: relative;
-  border-width: 1.5px;
-  padding: 3px 3px 4px;
-}
-.hot-jackpots .jp::before {
-  content: '';
-  position: absolute; inset: 0 0 auto 0; height: 3px;
-  border-radius: 10px 10px 0 0;
-  background: var(--tier, var(--gold));
-}
-.hot-jackpots .jp-name { color: var(--tier, var(--dim)); font-weight: 800; }
-.hot-jackpots .jp-amount { color: var(--text); }
-.hot-jackpots .jp.progressive .jp-amount { color: var(--gold); }
-
-/* ---------- 4 satırlık makara ---------- */
-.reel { height: calc(var(--cell-h, 62px) * 4); }
-.reels { grid-template-columns: repeat(5, 1fr); }
-
-/* Kabin: 7 HOT sıcak bir alev kimliği taşır */
-.hot .frame {
+  border-radius: 10px;
+  padding: 3px 2px 4px;
+  text-align: center;
+  overflow: hidden;
+  /* Her kademe kendi rengiyle çerçevelenir (maketteki mor/mavi/yeşil/kırmızı) */
   background:
-    linear-gradient(180deg, #4a2408, #24110a) padding-box,
-    linear-gradient(180deg, #ffd76a, #b23c00) border-box;
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--tier) 30%, rgba(6, 10, 30, .9)),
+      rgba(5, 9, 26, .92));
+  border: 1.5px solid var(--tier);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--tier) 45%, transparent),
+              inset 0 1px 0 rgba(255, 255, 255, .14);
 }
-.hot .reel { background: linear-gradient(180deg, #221a2e, #16111f 50%, #221a2e); }
+.hot-jackpots .jp-name {
+  display: block;
+  font-size: 8.5px; font-weight: 800; letter-spacing: .6px;
+  color: color-mix(in srgb, var(--tier) 45%, #ffffff);
+}
+.hot-jackpots .jp-amount {
+  display: block;
+  font-size: clamp(11px, 3.4vw, 15px);
+  font-weight: 900;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--tier) 70%, transparent);
+}
+.hot-jackpots .jp.progressive .jp-amount { color: var(--g-1); }
+.hot-jackpots .jp.hit { animation: jpFlash .45s ease 8; }
+@keyframes jpFlash { 50% { background: var(--tier); } }
+
+/* ---------- Marka ---------- */
+.stage { gap: 4px; justify-content: flex-start; padding-top: 2px; min-height: 0; }
+.brand { display: grid; place-items: center; }
+.brand-logo {
+  max-width: min(76vw, 330px);
+  max-height: 19vh;
+  width: auto; height: auto;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, .65));
+}
+.hot .demo-badge {
+  color: var(--g-1);
+  background: var(--panel);
+  border: 1.5px solid var(--panel-line);
+  backdrop-filter: blur(6px);
+  font-size: 9px; letter-spacing: 1.2px; font-weight: 800;
+  padding: 4px 12px;
+}
+
+/* ---------- Oymalı altın çerçeve ---------- */
+.hot .frame {
+  position: relative;
+  width: fit-content;
+  margin: 0 auto;
+  padding: 8px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, #131f4a, #080e28) padding-box,
+    linear-gradient(160deg, var(--g-hi) 0%, var(--g-2) 26%, var(--g-4) 52%, var(--g-2) 78%, var(--g-hi) 100%) border-box;
+  border: 4px solid transparent;
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, .65),
+    0 0 26px rgba(255, 190, 70, .22),
+    inset 0 0 0 1px rgba(255, 238, 190, .35);
+}
+.hot .reels {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  border-radius: 11px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #101a42, #060b22);
+}
+.hot .reel {
+  background: linear-gradient(180deg, #16224e, #0a1132 55%, #16224e);
+  /* Maketteki gibi makaralar arası ince altın ayraç */
+  box-shadow: inset -1px 0 0 rgba(255, 208, 110, .22);
+}
+.hot .reel:last-child { box-shadow: none; }
+.hot .reel::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, .5), transparent 20%, transparent 80%, rgba(0, 0, 0, .5));
+}
+
+/* 5x4: makara dört hücre yüksekliğinde (style.css varsayılanı üçtür) */
+.reel { height: calc(var(--cell-h, 62px) * 4); }
+
+/* ---------- Makaradaki çanların üstündeki tutar ---------- */
+.cell.reel-bell { position: relative; }
+.cell.reel-bell .bell-tag {
+  position: absolute;
+  left: 50%; bottom: 3px;
+  transform: translateX(-50%);
+  font-size: clamp(8px, 2.5vw, 11px);
+  font-weight: 900;
+  color: #fff6d8;
+  text-shadow: 0 1px 0 #000, 0 0 6px rgba(0, 0, 0, .95);
+  background: linear-gradient(180deg, rgba(90, 60, 10, .85), rgba(20, 12, 2, .9));
+  border: 1px solid rgba(255, 208, 110, .5);
+  border-radius: 99px;
+  padding: 0 7px;
+  white-space: nowrap;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ---------- Kazanç bandı ---------- */
+.hot .winbar {
+  margin: 8px auto 0;
+  width: fit-content;
+  max-width: 100%;
+  padding: 5px 24px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #101a42, #070d26);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  box-shadow: 0 0 0 2px var(--g-2), 0 6px 18px rgba(0, 0, 0, .55),
+              inset 0 1px 0 rgba(255, 255, 255, .1);
+  min-height: 32px;
+}
+.hot .winbar-label {
+  font-size: 10px; letter-spacing: 2.4px; font-weight: 800;
+  color: rgba(230, 226, 255, .68);
+}
+.hot .winbar-value {
+  font-size: clamp(18px, 5.4vw, 25px); font-weight: 900;
+  background: linear-gradient(180deg, var(--g-hi), var(--g-2));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  font-variant-numeric: tabular-nums;
+  filter: drop-shadow(0 0 8px rgba(255, 180, 50, .5));
+}
+.hot .winbar-info { font-size: 11px; font-weight: 700; color: rgba(226, 222, 255, .8); }
+
+/* ---------- Ölçerler ---------- */
+.hot .controls { gap: 8px; padding-bottom: 12px; }
+.hot .meter {
+  padding: 5px 14px 6px;
+  border-radius: 13px;
+  background: var(--panel);
+  border: 1.5px solid var(--panel-line);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .1);
+}
+.hot .meter-label {
+  font-size: 9px; letter-spacing: 2px; font-weight: 800;
+  color: rgba(226, 222, 255, .58);
+}
+.hot .meter-value {
+  font-size: clamp(15px, 4.4vw, 19px); font-weight: 900;
+  color: var(--g-1);
+  text-shadow: 0 0 10px rgba(255, 190, 60, .35);
+}
+
+/* ---------- Alt düğme sırası ---------- */
+.hot .pad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.hot .round-btn {
+  width: 50px; height: 50px; flex: 0 0 50px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--g-2);
+  background:
+    radial-gradient(circle at 50% 32%, #17224c, #070d26 72%);
+  color: var(--g-1);
+  font-size: 21px; font-weight: 900;
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 255, 255, .14);
+}
+.hot .round-btn svg { width: 22px; height: 22px; }
+.hot .round-btn:active { transform: scale(.92); }
+.hot .round-btn:disabled { opacity: .35; }
+.hot .round-btn.active {
+  background: linear-gradient(180deg, var(--g-1), var(--g-2));
+  color: #3a2402;
+  border-color: var(--g-hi);
+  box-shadow: 0 0 18px rgba(255, 190, 60, .6);
+}
+
+/* Mavi/altın çevir düğmesi */
+.hot .spin-btn {
+  position: relative;
+  flex: 0 0 auto;
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  border: 0; padding: 0; background: none;
+  display: grid; place-items: center;
+  cursor: pointer;
+}
+.spin-ring {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 210deg, var(--g-hi), var(--g-2) 22%, var(--g-4) 44%,
+    var(--g-1) 64%, var(--g-2) 84%, var(--g-hi));
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .6), 0 0 24px rgba(255, 190, 60, .45);
+}
+.hot .spin-inner {
+  position: relative;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 28%, #2b5cc9, #0d2258 62%, #071231 100%);
+  box-shadow: inset 0 0 0 2px rgba(255, 221, 128, .7), inset 0 6px 18px rgba(0, 0, 0, .6);
+}
+.spin-arrows {
+  position: absolute;
+  width: 62px; height: 62px;
+  color: var(--g-1);
+  filter: drop-shadow(0 0 8px rgba(255, 200, 80, .7));
+}
+.spin-caption {
+  position: relative;
+  font-size: 12px; font-weight: 900; letter-spacing: 1.2px;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, .85);
+}
+.hot .spin-btn:active .spin-inner { transform: scale(.94); }
+.hot .spin-btn:disabled .spin-arrows { animation: spinTurn 1.1s linear infinite; }
+@keyframes spinTurn { to { transform: rotate(360deg); } }
+.hot .spin-btn:disabled .spin-ring { filter: grayscale(.4) brightness(.75); }
+
+@media (max-width: 380px) {
+  .hot .spin-btn { width: 82px; height: 82px; }
+  .hot .spin-inner { width: 68px; height: 68px; }
+  .spin-arrows { width: 52px; height: 52px; }
+  .spin-caption { font-size: 10.5px; }
+  .hot .round-btn { width: 44px; height: 44px; flex: 0 0 44px; }
+}
+
+/* ---------- Bedava dönüş / Çan Zinciri HUD'leri ---------- */
+.fs-hud, .bell-hud { backdrop-filter: blur(6px); }
+/* style.css'teki ortak kural HUD'i çerçevenin içine taşırıyordu;
+   7 HOT'ta tamamen çerçevenin üstünde durmalı ki ilk satırı örtmesin. */
+.hot .fs-hud { top: 0; transform: translate(-50%, -106%); }
+
+/* Bedava dönüş modunda çerçeve morlaşır */
+.hot.free-mode .frame {
+  background:
+    linear-gradient(180deg, #331a5e, #150a30) padding-box,
+    linear-gradient(160deg, #f0d4ff, #a855f7 40%, #4c1d95 60%, #f0d4ff) border-box;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .65), 0 0 34px rgba(168, 85, 247, .4);
+}
+.hot.free-mode .reel { background: linear-gradient(180deg, #2c1a52, #180d34 55%, #2c1a52); }
+
+/* Çan turunda kabin sıcaklaşır */
+.bell-mode .frame {
+  background:
+    linear-gradient(180deg, #3a1550, #1a0a26) padding-box,
+    linear-gradient(160deg, var(--g-hi), var(--g-2) 40%, #a0342b 60%, var(--g-hi)) border-box !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .65), 0 0 34px rgba(255, 120, 20, .35) !important;
+}
 
 /* ---------- Tutulan makara (scatter respin) ---------- */
 .reel.held {
@@ -77,6 +341,7 @@
 @keyframes holdPop { from { transform: translate(-50%, 6px) scale(.7); opacity: 0; } }
 
 /* ---------- Çan hücreleri ---------- */
+.bell-cell { z-index: 2; }
 .bell-cell .bell-tag {
   position: absolute;
   left: 50%; bottom: 3px;
@@ -92,6 +357,7 @@
   white-space: nowrap;
   z-index: 3;
 }
+
 
 /* ---------- Çan Zinciri tahtası ---------- */
 .reels.hold-board {
@@ -118,6 +384,7 @@
 }
 .hold-board .bell-cell {
   animation: none;
+  z-index: 2;                 /* etiket alt satırın zemininin üstünde kalsın */
 }
 .hold-board .bell-cell.landing {
   animation: bellDrop .42s cubic-bezier(.2, 1.5, .4, 1);
@@ -135,11 +402,13 @@
   pointer-events: none;
 }
 
+
 /* ---------- Çan Zinciri HUD ---------- */
 .bell-hud {
   position: absolute;
-  top: -20px; left: 50%;
-  transform: translateX(-50%);
+  /* Tamamen çerçevenin üstünde durur; ilk satırı örtmez. */
+  top: 0; left: 50%;
+  transform: translate(-50%, -106%);
   z-index: 5;
   background: linear-gradient(180deg, #3b1a0a, #1e0d06);
   border: 1.5px solid #d8722b;
@@ -152,11 +421,12 @@
 .bell-hud-title {
   font-size: 8px; letter-spacing: 2.4px; font-weight: 900;
   color: #ffc98a;
+  display: none;              /* dar ekranda yer kaplamasın */
 }
 .bell-hud-row { display: flex; gap: 0; align-items: stretch; }
 .bell-hud-item {
   display: flex; flex-direction: column; align-items: center;
-  padding: 1px 11px; min-width: 62px;
+  padding: 1px 10px; min-width: 58px;
 }
 .bell-hud-item + .bell-hud-item { border-left: 1px solid rgba(255, 255, 255, .14); }
 .bell-hud-label {
@@ -178,14 +448,6 @@
   -webkit-background-clip: text; background-clip: text;
 }
 
-/* Çan turunda kabin sıcaklaşır */
-.bell-mode .frame {
-  background:
-    linear-gradient(180deg, #3a1550, #1a0a26) padding-box,
-    linear-gradient(180deg, #ffd45e, #a0342b) border-box;
-  box-shadow: var(--shadow), inset 0 0 40px rgba(0, 0, 0, .55), 0 0 34px rgba(255, 120, 20, .3);
-}
-.bell-mode .logo i { color: var(--hot-fire-2); }
 
 /* ---------- Çan Zinciri giriş/bitiş ekranları ---------- */
 .bell-rays {
@@ -244,6 +506,7 @@
   box-shadow: 0 0 16px color-mix(in srgb, var(--tier, #b8892b) 55%, transparent);
 }
 
+
 /* ---------- Ödeme tablosu ekleri ---------- */
 .hot-tiers { display: grid; gap: 6px; margin: 8px 0 4px; }
 .hot-tier {
@@ -272,7 +535,3 @@
 }
 .hot-bellgrid svg { width: 40px; height: 40px; }
 .hot-bellgrid figcaption { font-size: 10px; font-weight: 800; color: var(--text-2); }
-
-@media (max-width: 380px) {
-  .bell-hud-item { min-width: 54px; padding: 1px 7px; }
-}

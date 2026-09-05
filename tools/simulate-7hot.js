@@ -1,110 +1,94 @@
-/** 7 HOT RTP simülasyonu: node tools/simulate-7hot.js [spin] */
-import {
-  resolveSpin, finishSpin, respinReels, scatterReels,
-  startBellRound, bellRoundSpin, settleBellRound
-} from '../server/games/sevenhot/engine.js';
-import { BASE_REELS, JACKPOTS, SCATTER_RESPIN, FREE_SPINS } from '../server/games/sevenhot/config.js';
+/**
+ * 7 HOT RTP simülasyonu: node tools/simulate-7hot.js [tur] [bahis]
+ *
+ * Oyuncunun gördüğü akışın AYNISINI ölçer: motoru değil, oturum katmanını
+ * (playRound) sürer. Böylece scatter respin garantisi, bedava dönüş ve
+ * Çan Zinciri kuralları simülasyona birebir yansır.
+ */
+import { playRound, ensureState, createPools } from '../server/games/sevenhot/session.js';
+import { JACKPOTS } from '../server/games/sevenhot/config.js';
 import { SeededRng } from '../server/game/rng.js';
 
 const spins = Number(process.argv[2] || 1_000_000);
-const bet = 40;
+const bet = Number(process.argv[3] || 40);
 const rng = new SeededRng(90210);
+const pools = createPools();
 
-const pools = Object.fromEntries(JACKPOTS.levels.map((l) => [l.id, l.seed || 0]));
-let wagered = 0, lineRet = 0, scatterRet = 0, freeRet = 0, bellRet = 0;
-let bellTriggers = 0, bellSpinsTotal = 0, fullScreens = 0;
-let fsTriggers = 0, respinTriggers = 0, biggest = 0;
+const player = {
+  balance: 1e12,
+  stats: { spins: 0, wagered: 0, won: 0, biggestWin: 0 }
+};
+
+let paid = 0;
+let baseRet = 0;      // ucretli donuslerin kazanci
+let freeRet = 0;      // bedava donuslerin kazanci
+let bellRet = 0;      // Can Zinciri payi
+let scatterRet = 0;
+let bellTriggers = 0;
+let bellSpins = 0;
+let fullScreens = 0;
+let fsTriggers = 0;
+let respinTriggers = 0;
+let respinSteps = 0;
+let biggest = 0;
 const jpHits = Object.fromEntries(JACKPOTS.levels.map((l) => [l.id, 0]));
 const jpPaid = Object.fromEntries(JACKPOTS.levels.map((l) => [l.id, 0]));
 
-for (let i = 0; i < spins; i += 1) {
-  wagered += bet;
-  for (const level of JACKPOTS.levels) {
-    if (level.progressive) pools[level.id] += bet * JACKPOTS.contributionRate;
-  }
+while (paid < spins) {
+  const wasFree = ensureState(player).free.remaining > 0;
+  if (player.balance < 1e9) player.balance = 1e12;
 
-  let win = 0;
-  let r = resolveSpin({ rng, totalBet: bet, free: false });
-  lineRet += r.wins.filter((w) => w.type === 'line').reduce((s, w) => s + w.amount, 0);
-  scatterRet += r.wins.filter((w) => w.type === 'scatter').reduce((s, w) => s + w.amount, 0);
-  win += r.totalWin;
+  const { error, round } = playRound({ player, pools, rng, bet });
+  if (error) throw new Error(error);
 
-  // --- Scatter tutmalı respin ---
-  if (r.scatterRespin) {
+  if (!wasFree) paid += 1;
+  if (wasFree) freeRet += round.totalWin;
+  else baseRet += round.totalWin;
+
+  scatterRet += round.scatter.amount;
+  if (round.scatterRespin) {
     respinTriggers += 1;
-    let grid = r.grid;
-    let guard = 0;
-    for (;;) {
-      const before = scatterReels(grid).length;
-      const held = scatterReels(grid);
-      grid = respinReels(rng, BASE_REELS, grid, held);
-      const res = finishSpin({ rng, grid, totalBet: bet, free: false });
-      const after = res.scatter.count;
-      if (after > before * 0) { /* değerlendirme aşağıda */ }
-      if (after >= SCATTER_RESPIN.target || after === before || guard++ > 8) {
-        r = res;
-        break;
-      }
-      r = res;
-    }
-    lineRet += r.wins.filter((w) => w.type === 'line').reduce((s, w) => s + w.amount, 0);
-    scatterRet += r.wins.filter((w) => w.type === 'scatter').reduce((s, w) => s + w.amount, 0);
-    win += r.totalWin;
+    respinSteps += round.scatterRespin.steps.length;
   }
-
-  // --- Çan Zinciri ---
-  if (r.bellTrigger) {
+  if (round.freeSpinsAwarded > 0 && !wasFree) fsTriggers += 1;
+  if (round.bellRound) {
     bellTriggers += 1;
-    const round = startBellRound(r.bells.cells, r.bells.boost, bet);
-    let guard = 0;
-    while (!round.finished && guard++ < 120) bellRoundSpin(rng, round);
-    const settled = settleBellRound(rng, round, pools);
-    bellRet += settled.total;
-    bellSpinsTotal += settled.spins;
-    if (settled.full) fullScreens += 1;
-    for (const jw of settled.jackpotWins) {
-      jpHits[jw.level] += 1;
-      jpPaid[jw.level] += jw.amount;
+    bellSpins += round.bellRound.spins;
+    bellRet += round.bellRound.total;
+    if (round.bellRound.full) fullScreens += 1;
+    for (const j of round.bellRound.jackpotWins) {
+      jpHits[j.level] += 1;
+      jpPaid[j.level] += j.amount;
     }
-    win += settled.total;
   }
-
-  // --- Bedava dönüşler ---
-  let remaining = r.scatter.freeSpins;
-  if (remaining > 0) fsTriggers += 1;
-  let guard = 0;
-  while (remaining > 0 && guard++ < 400) {
-    remaining -= 1;
-    const fs = resolveSpin({ rng, totalBet: bet, free: true });
-    freeRet += fs.totalWin;
-    win += fs.totalWin;
-    remaining += fs.scatter.freeSpins;
-  }
-
-  if (win > biggest) biggest = win;
+  if (round.totalWin > biggest) biggest = round.totalWin;
 }
 
-const returned = lineRet + scatterRet + freeRet + bellRet;
-const pct = (x) => `%${((x / wagered) * 100).toFixed(2)}`;
+const wagered = paid * bet;
+const pct = (v) => `%${((v / wagered) * 100).toFixed(2)}`;
+const nf = (v) => Math.round(v).toLocaleString('tr-TR');
+const total = baseRet + freeRet;
 
-console.log(`\n═══ 7 HOT · ${spins.toLocaleString('tr-TR')} dönüş · bahis ${bet} ═══\n`);
-console.log(`Hat RTP           : ${pct(lineRet)}`);
-console.log(`Scatter RTP       : ${pct(scatterRet)}`);
+console.log(`\n═══ 7 HOT · ${nf(paid)} ücretli dönüş · bahis ${bet} ═══\n`);
+console.log(`Temel oyun RTP    : ${pct(baseRet)}`);
 console.log(`Bedava dönüş RTP  : ${pct(freeRet)}`);
-console.log(`Çan Zinciri RTP   : ${pct(bellRet)}`);
-console.log(`TOPLAM RTP        : ${pct(returned)}`);
-console.log(`Kasa payı         : %${(100 - (returned / wagered) * 100).toFixed(2)}`);
+console.log(`  Çan Zinciri payı: ${pct(bellRet)}  (yukarıdakilerin içinde)`);
+console.log(`  Scatter ödemesi : ${pct(scatterRet)}`);
+console.log(`TOPLAM RTP        : ${pct(total)}`);
+console.log(`Kasa payı         : %${(100 - (total / wagered) * 100).toFixed(2)}`);
 console.log('---');
-console.log(`Çan Zinciri       : 1/${bellTriggers ? Math.round(spins / bellTriggers) : '-'} dönüş` +
-  ` · ort. ${bellTriggers ? (bellSpinsTotal / bellTriggers).toFixed(1) : 0} respin` +
-  ` · tam ekran ${fullScreens} kez`);
-console.log(`Bedava dönüş      : 1/${fsTriggers ? Math.round(spins / fsTriggers) : '-'} dönüş`);
-console.log(`Scatter respin    : 1/${respinTriggers ? Math.round(spins / respinTriggers) : '-'} dönüş`);
-console.log(`En büyük kazanç   : ${Math.round(biggest).toLocaleString('tr-TR')} (bahsin ${Math.round(biggest / bet)}x katı)`);
+console.log(`Çan Zinciri       : 1/${Math.round(paid / Math.max(1, bellTriggers))} dönüş · ` +
+  `ort. ${(bellSpins / Math.max(1, bellTriggers)).toFixed(1)} respin · tam ekran ${fullScreens} kez`);
+console.log(`Bedava dönüş      : 1/${Math.round(paid / Math.max(1, fsTriggers))} dönüş`);
+console.log(`Scatter respin    : 1/${Math.round(paid / Math.max(1, respinTriggers))} dönüş · ` +
+  `ort. ${(respinSteps / Math.max(1, respinTriggers)).toFixed(2)} tur`);
+console.log(`En büyük kazanç   : ${nf(biggest)} (bahsin ${Math.round(biggest / bet)}x katı)`);
 console.log('---');
 for (const level of JACKPOTS.levels) {
-  console.log(`  ${level.name.padEnd(6)} isabet 1/${jpHits[level.id] ? Math.round(spins / jpHits[level.id]).toLocaleString('tr-TR') : '-'}` +
-    ` · ödenen ${Math.round(jpPaid[level.id]).toLocaleString('tr-TR')}` +
-    ` · RTP ${pct(jpPaid[level.id])}`);
+  const hits = jpHits[level.id];
+  const every = hits ? Math.round(paid / hits) : 0;
+  console.log(
+    `  ${level.name.padEnd(6)} isabet ${hits ? `1/${nf(every)}`.padEnd(12) : 'hiç'.padEnd(12)}` +
+    ` · ödenen ${nf(jpPaid[level.id]).padStart(12)} · RTP ${pct(jpPaid[level.id])}`
+  );
 }
-console.log();

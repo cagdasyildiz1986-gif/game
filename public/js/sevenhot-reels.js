@@ -94,9 +94,9 @@ export class HotReels {
   /**
    * Hedef ızgaraya animasyonlu geçiş.
    * @param {string[][]} grid
-   * @param {{turbo?:boolean, held?:number[], scatterSymbol?:string, bellSymbol?:string}} opts
+   * @param {{turbo?:boolean, held?:number[], scatterSymbol?:string}} opts
    */
-  async spinTo(grid, { turbo = false, held = [], scatterSymbol = 'SCATTER', bellSymbol = 'BELL' } = {}) {
+  async spinTo(grid, { turbo = false, held = [], scatterSymbol = 'SCATTER' } = {}) {
     if (this.spinning) return;
     this.spinning = true;
     this.clearEffects();
@@ -108,7 +108,6 @@ export class HotReels {
     const fillerCount = turbo ? 8 : 15;
 
     let scattersSoFar = 0;
-    let bellsSoFar = 0;
     let anticipationStarted = false;
     const animations = [];
 
@@ -119,7 +118,6 @@ export class HotReels {
         // Tutulan makara dönmez; sembolleri olduğu gibi kalır.
         this.stripEls[r].innerHTML = target.map(cellHtml).join('');
         scattersSoFar += target.filter((s) => s === scatterSymbol).length;
-        bellsSoFar += target.filter((s) => s === bellSymbol).length;
         continue;
       }
 
@@ -131,8 +129,10 @@ export class HotReels {
       const total = target.length + filler.length + current.length;
       const startY = -(total - ROWS) * cellH;
 
-      // Beklenti: önceki makaralarda 2+ scatter ya da 3+ çan varsa gerilim başlar.
-      const anticipate = r >= 2 && (scattersSoFar >= 2 || bellsSoFar >= 3);
+      // Beklenti YALNIZCA scatter içindir: önceki makaralarda 2+ scatter
+      // varsa kalan makaralar yavaşlar ve alevlenir. Çanlar bu gerilimi
+      // tetiklemez — çan turunun kendi sunumu vardır.
+      const anticipate = r >= 2 && scattersSoFar >= 2;
       const extra = anticipate ? 1900 + (r - 2) * 650 : 0;
       const duration = baseDuration + r * stagger + extra;
       if (anticipate) {
@@ -162,12 +162,28 @@ export class HotReels {
       );
 
       scattersSoFar += target.filter((s) => s === scatterSymbol).length;
-      bellsSoFar += target.filter((s) => s === bellSymbol).length;
     }
 
     await Promise.all(animations);
     this.grid = grid;
     this.spinning = false;
+  }
+
+  /**
+   * Temel oyunda makaraya düşen çanlara taşıdıkları tutarı basar ve
+   * jackpot çanlarını renkli sürümüyle değiştirir. Izgara her yeniden
+   * çizildiğinde (çevirme, respin) tekrar çağrılmalıdır.
+   */
+  decorateBells(cells = [], label) {
+    for (const cell of cells) {
+      const el = this.cellAt(cell.reel, cell.row);
+      if (!el || el.dataset.symbol !== 'BELL') continue;
+      const text = label(cell);
+      el.classList.add('bell-cell', 'reel-bell');
+      el.innerHTML =
+        symbolMarkup(bellSprite(cell)) +
+        (text ? `<span class="bell-tag">${text}</span>` : '');
+    }
   }
 
   /* ═══════════ Çan Zinciri tahtası ═══════════ */

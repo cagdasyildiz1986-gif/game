@@ -73,7 +73,7 @@ function layout() {
   const app = document.querySelector('.app');
   const topbar = document.querySelector('.topbar');
   const controls = document.querySelector('.controls');
-  const logo = document.querySelector('.logo');
+  const logo = document.querySelector('.brand');
   const gap = 3;
   const framePad = 9;
 
@@ -82,7 +82,7 @@ function layout() {
   const width = Math.min(app.clientWidth, 620) - 12;
   const cellW = Math.max(36, (width - framePad * 2 - gap * (REELS - 1)) / REELS);
   const heightCap = (app.clientHeight - reserved - framePad * 2) / ROWS;
-  const cellH = Math.max(36, Math.min(cellW * 1.35, heightCap));
+  const cellH = Math.max(34, Math.min(cellW * 1.5, heightCap));
 
   const root = document.documentElement.style;
   root.setProperty('--cell-w', `${Math.floor(cellW)}px`);
@@ -225,6 +225,7 @@ async function playScatterRespins(respin) {
     sfx.anticipation(600);
     await sleep(pace(650));
     await reels.spinTo(step.grid, { turbo: state.turbo, held: step.held });
+    reels.decorateBells(step.bells, bellLabel);
     if (step.gained > 0) {
       sfx.win(2);
       floatWin(0);
@@ -455,6 +456,7 @@ async function doSpin() {
 
   // 1) Temel çevirme
   await reels.spinTo(round.grid, { turbo: state.turbo });
+  reels.decorateBells(round.baseBells, bellLabel);
   // Yeni kazanılan bedava dönüşler sayaca HEMEN yazılmaz: giriş ekranı
   // gösterilmeden sayacın belirmesi sürprizi bozuyordu.
   const deferFreeCount = round.freeSpinsAwarded > 0 && !round.free;
@@ -715,10 +717,14 @@ function bindEvents() {
     closeModal('modal-auto');
   });
 
+  const soundIcon = (on) =>
+    on
+      ? '<path d="M4 9h4l5-4v14l-5-4H4zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>'
+      : '<path d="M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>';
+  document.getElementById('icon-sound').innerHTML = soundIcon(sfx.enabled);
   $('btn-sound').addEventListener('click', () => {
-    $('btn-sound').textContent = sfx.toggle() ? '🔊' : '🔇';
+    document.getElementById('icon-sound').innerHTML = soundIcon(sfx.toggle());
   });
-  $('btn-sound').textContent = sfx.enabled ? '🔊' : '🔇';
 
   $('btn-menu').addEventListener('click', () => {
     sfx.click();

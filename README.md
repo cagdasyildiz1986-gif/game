@@ -318,10 +318,10 @@ uygulamak mümkün değildir; bu bilinçli bir tasarım kararıdır.
 | 🍋 Limon | 5 | 20 | 100 |
 | 🍒 Kiraz | 5 | 20 | 100 |
 
-**Scatter (💲 Dolar)** — toplam bahis çarpanı: 3× → 2, 4× → 10, 5× → 50.
-3 scatter 12, 4 scatter 15, 5 scatter 20 **bedava dönüş** kazandırır. Bedava dönüşlerde
-tüm kazançlar **x3** çarpanlıdır, daha cömert makara şeritleri kullanılır ve yeni
-scatterlar +5 dönüş ekler.
+**Scatter (💲 Dolar)** — toplam bahis çarpanı: 3× → 1,5 · 4× → 7 · 5× → 40.
+Ekranda 2–4 scatter varsa **scatter'lı makaralar tutulur** ve kalanlar yeniden döner.
+Makaralar **en az 2 tur** döner — yeni scatter gelmese bile; 5 scatter'a ulaşılırsa
+dizi hemen biter. 3 scatter **7 bedava dönüş** verir (4 scatter: 13, 5 scatter: 22).
 
 **Jackpot Cards** — her ücretli dönüşün ardından rastgele tetiklenir. Aynı türden 3 kart
 açan oyuncu ilgili progresif havuzu kazanır: ♣ Sinek, ♦ Karo, ♥ Kupa, ♠ Maça.
@@ -360,9 +360,14 @@ döner; her yeni çan sayacı 3 dönüşe sıfırlar. Tur sonunda tüm çanlar �
 - **Grand** çanı bilerek sık düşer ama tek başına ödemez: jackpot için ekranda
   **3 tane** gerekir. Olmazsa her biri toplam bahsin 15–35 katı nakde döner.
 
-**Jackpot merdiveni** — Mini (bahsin 20 katı), Minör (100), Majör (800) **sabit**
+**Jackpot merdiveni** — Mini (bahsin 12 katı), Minör (34), Majör (300) **sabit**
 katlardır; böylece her bahis seviyesinde adil çalışırlar. Grand tek **progresif**
 havuzdur ve her dönüşün %1,2'sinden beslenir.
+
+Tutarlar bilerek küçük tutulur, karşılığında jackpot çanları **sık** düşer:
+Mini 1/747 dönüş, Minör 1/2.217, Majör 1/30.303, Grand 1/95.238. Oyuncu bir
+oturumda gerçekten jackpot görür — büyük ama hiç gelmeyen bir merdiven yerine
+kademeli ve ulaşılabilir bir yapı tercih edildi.
 
 4 milyon dönüşlük ölçüm: hat %46,3 · scatter %5,1 · bedava dönüş %7,4 ·
 Çan Zinciri %36,9 → **toplam %95,6**.

@@ -81,31 +81,40 @@ function publicWins(wins) {
 
 /**
  * Scatter tutmalı respin dizisi.
- * Scatter içeren makaralar tutulur, kalanlar döner. Yeni scatter gelmezse
- * dizi biter; hedef sayıya ulaşılırsa da biter.
+ *
+ * Scatter içeren makaralar tutulur, kalanlar yeniden döner. Ekranda 2+
+ * scatter varken makaralar EN AZ `minSpins` tur döner — yeni scatter
+ * gelmese bile. Hedef sayıya (5) ulaşılırsa dizi hemen biter.
  */
-function runScatterRespins({ rng, grid, totalBet, payoutScale }) {
+function runScatterRespins({ rng, grid, totalBet, payoutScale, startCount }) {
   const steps = [];
   let current = grid;
   let last = null;
-  let guard = 0;
+  let beforeCount = startCount;
 
-  for (;;) {
-    const before = scatterReels(current);
-    const next = respinReels(rng, BASE_REELS, current, before);
+  for (let spin = 1; spin <= SCATTER_RESPIN.maxSpins; spin += 1) {
+    const held = scatterReels(current);
+    const next = respinReels(rng, BASE_REELS, current, held);
     const res = scaleWins(finishSpin({ rng, grid: next, totalBet, free: false }), payoutScale);
     const after = res.scatter.count;
 
     steps.push({
-      held: before,
+      held,
       grid: next,
       scatterCount: after,
-      gained: after - before.length
+      // Sayaçlar SEMBOL adedidir; daha önce makara adediyle karşılaştırılıyordu.
+      gained: after - beforeCount,
+      // Bu ızgaradaki çanların taşıdığı tutarlar (arayüz üstlerine basar)
+      bells: res.bells.cells.map(publicCell)
     });
 
     current = next;
     last = res;
-    if (after >= SCATTER_RESPIN.target || after === before.length || guard++ > 8) break;
+
+    if (after >= SCATTER_RESPIN.target) break;
+    // Garanti turlar dolduysa ve yeni scatter gelmediyse dizi biter.
+    if (spin >= SCATTER_RESPIN.minSpins && after === beforeCount) break;
+    beforeCount = after;
   }
 
   return { steps, result: last };
@@ -178,6 +187,7 @@ export function playRound({ player, pools, rng, bet, payoutScale = 1 }) {
   // ── 1. Temel çevirme ────────────────────────────────────────────────
   let result = scaleWins(resolveSpin({ rng, totalBet: stake, free: isFree }), payoutScale);
   const baseGrid = result.grid;
+  const baseBells = result.bells.cells.map(publicCell);
   const baseWins = publicWins(result.wins);
   const baseWin = result.totalWin;
   let win = result.totalWin;
@@ -185,7 +195,13 @@ export function playRound({ player, pools, rng, bet, payoutScale = 1 }) {
   // ── 2. Scatter tutmalı respin ───────────────────────────────────────
   let scatterRespin = null;
   if (result.scatterRespin) {
-    const run = runScatterRespins({ rng, grid: result.grid, totalBet: stake, payoutScale });
+    const run = runScatterRespins({
+      rng,
+      grid: result.grid,
+      totalBet: stake,
+      payoutScale,
+      startCount: result.scatter.count
+    });
     result = run.result;
     win += result.totalWin;
     scatterRespin = {
@@ -248,6 +264,7 @@ export function playRound({ player, pools, rng, bet, payoutScale = 1 }) {
         amount: round2(result.scatter.amount)
       },
       bells: { cells: result.bells.cells.map(publicCell), boost: result.bells.boost },
+      baseBells,
       scatterRespin,
       bellRound,
       freeSpinsAwarded: awarded,
