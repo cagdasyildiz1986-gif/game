@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { config } from '../config.js';
 import { createPools } from '../game/jackpot.js';
+import { createPools as createSevenHotPools } from '../games/sevenhot/session.js';
 import { newServerSeed, hashSeed } from '../game/rng.js';
 import { round2 } from '../game/session.js';
 import { initialTaskState } from '../site/tasks.js';
@@ -23,6 +24,7 @@ const state = {
   usernames: new Map(), // kucuk harfli kullanici adi -> id
   sessions: new Map(), // token -> id
   jackpots: createPools(),
+  sevenhot: createSevenHotPools(),
   settings: { ...DEFAULT_SETTINGS },
   ledger: [] // son bakiye hareketleri (admin gorunumu icin)
 };
@@ -44,6 +46,7 @@ export function load() {
     state.usernames = new Map(Object.entries(raw.usernames || {}));
     state.sessions = new Map(Object.entries(raw.sessions || {}));
     state.jackpots = { ...state.jackpots, ...(raw.jackpots || {}) };
+    state.sevenhot = { ...state.sevenhot, ...(raw.sevenhot || {}) };
     state.settings = mergeSettings(DEFAULT_SETTINGS, raw.settings);
     state.ledger = Array.isArray(raw.ledger) ? raw.ledger.slice(-LEDGER_LIMIT) : [];
   } catch (err) {
@@ -65,6 +68,7 @@ export function save() {
           usernames: Object.fromEntries(state.usernames),
           sessions: Object.fromEntries(state.sessions),
           jackpots: state.jackpots,
+          sevenhot: state.sevenhot,
           settings: state.settings,
           ledger: state.ledger
         })
@@ -214,6 +218,11 @@ export function login({ username, password }) {
 
 export function getJackpots() {
   return state.jackpots;
+}
+
+/** 7 HOT'un progresif havuzu (yalnızca GRAND ilerler). */
+export function getSevenHotPools() {
+  return state.sevenhot;
 }
 
 export function levelFromXp(xp) {
@@ -387,7 +396,8 @@ export function systemStats() {
     won: round2(won),
     spins,
     houseEdge: wagered > 0 ? round2(((wagered - won) / wagered) * 100) : 0,
-    jackpots: { ...state.jackpots }
+    jackpots: { ...state.jackpots },
+    sevenhot: { ...state.sevenhot }
   };
 }
 

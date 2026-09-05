@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { config } from './config.js';
 import { router as gameRouter } from './routes/game.js';
+import { router as sevenhotRouter } from './routes/sevenhot.js';
 import { router as authRouter } from './routes/auth.js';
 import { router as siteRouter } from './routes/site.js';
 import { router as adminRouter } from './routes/admin.js';
@@ -27,6 +28,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRouter);
 app.use('/api/site', siteRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api', sevenhotRouter);
 app.use('/api', gameRouter);
 app.use('/api', (req, res) => res.status(404).json({ error: 'Bilinmeyen uç nokta.' }));
 app.get('/healthz', (req, res) => res.json({ ok: true, uptime: process.uptime() }));
