@@ -42,8 +42,21 @@
   <main class="stage">
     <div class="logo">LUCKY <span>REELS</span></div>
     <div class="machine">
-      <div class="fs-badge" id="fs-badge" hidden>
-        <span id="fs-count">0</span> BEDAVA DÖNÜŞ · x<span id="fs-mult">3</span>
+      <div class="fs-hud" id="fs-badge" hidden>
+        <div class="fs-hud-item">
+          <span class="fs-hud-label">KALAN</span>
+          <span class="fs-hud-value" id="fs-count">0</span>
+        </div>
+        <div class="fs-hud-sep"></div>
+        <div class="fs-hud-item">
+          <span class="fs-hud-label">ÇARPAN</span>
+          <span class="fs-hud-value fs-hud-mult">x<span id="fs-mult">3</span></span>
+        </div>
+        <div class="fs-hud-sep"></div>
+        <div class="fs-hud-item">
+          <span class="fs-hud-label">TOPLAM</span>
+          <span class="fs-hud-value" id="fs-total">0</span>
+        </div>
       </div>
 
       <div class="frame">
@@ -152,6 +165,36 @@
       <div class="chip-row" id="auto-options"></div>
       <button class="wide-btn danger" id="auto-stop">Otomatik Oyunu Durdur</button>
     </div>
+  </div>
+</div>
+
+<!-- Bedava dönüş GİRİŞ ekranı -->
+<div class="fs-screen fs-intro" id="fs-intro" hidden>
+  <div class="fs-rays"></div>
+  <div class="fs-scatters" id="fs-scatters"></div>
+  <div class="fs-card">
+    <div class="fs-ribbon">SCATTER</div>
+    <div class="fs-headline">KAZANDIN!</div>
+    <div class="fs-big" id="fs-intro-count">0</div>
+    <div class="fs-sub">BEDAVA DÖNÜŞ</div>
+    <div class="fs-mult-badge">TÜM KAZANÇLAR <b id="fs-intro-mult">x3</b></div>
+    <button class="fs-cta" id="fs-intro-start">BAŞLA</button>
+  </div>
+</div>
+
+<!-- Bedava dönüş BİTİŞ ekranı -->
+<div class="fs-screen fs-outro" id="fs-outro" hidden>
+  <div class="fs-rays"></div>
+  <div class="fs-card">
+    <div class="fs-headline">BEDAVA DÖNÜŞ BİTTİ</div>
+    <div class="fs-sub" style="margin-bottom:6px">TOPLAM KAZANÇ</div>
+    <div class="fs-big fs-big-win" id="fs-outro-total">0</div>
+    <div class="fs-stats">
+      <div><span id="fs-outro-spins">0</span><i>dönüş</i></div>
+      <div><span id="fs-outro-best">0</span><i>en iyi</i></div>
+      <div><span id="fs-outro-mult">x0</span><i>bahsin katı</i></div>
+    </div>
+    <button class="fs-cta" id="fs-outro-collect">TOPLA</button>
   </div>
 </div>
 

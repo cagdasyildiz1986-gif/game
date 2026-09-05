@@ -12,7 +12,9 @@ const state = {
   turbo: localStorage.getItem('lucky-reels-turbo') === 'on',
   auto: 0,
   autoRunning: false,
-  winCycle: null
+  winCycle: null,
+  /** Bedava dönüş oturumu: giriş ekranından bitiş özetine kadar biriken veriler. */
+  freeRound: null
 };
 
 let reelSet = null;
@@ -87,9 +89,12 @@ function renderPlayer(player) {
   $('bet').textContent = money(player.bet);
 
   const fs = player.freeSpins;
-  $('fs-badge').hidden = fs.remaining <= 0;
+  const inFree = fs.remaining > 0;
+  $('fs-badge').hidden = !inFree;
   $('fs-count').textContent = fs.remaining;
   $('fs-mult').textContent = fs.multiplier || state.config.freeSpins.multiplier;
+  $('fs-total').textContent = fmt(state.freeRound?.total || 0);
+  document.body.classList.toggle('free-mode', inFree);
 
   $('spin-label').textContent = fs.remaining > 0 ? 'BEDAVA' : 'ÇEVİR';
   $('bet-up').disabled = fs.remaining > 0;
@@ -204,6 +209,94 @@ async function celebrate(amount, bet, { free = false } = {}) {
     })
   ]);
   $('celebration').hidden = true;
+}
+
+/* ================== Bedava dönüş ekranları ================== */
+
+/** Merkeze uçan scatter sembolleriyle giriş animasyonu. */
+function launchScatters(count = 3) {
+  const host = $('fs-scatters');
+  const origins = [
+    [-38, -30], [38, -30], [0, 34], [-42, 22], [42, 22]
+  ];
+  host.innerHTML = Array.from({ length: Math.min(count, origins.length) }, (_, i) => {
+    const [x, y] = origins[i];
+    return `<div class="fly" style="
+      left:calc(50% - 37px); top:calc(45% - 37px);
+      --fx:${x}vw; --fy:${y}vh;
+      animation-delay:${i * 0.11}s">${symbolMarkup(state.config.scatter)}</div>`;
+  }).join('');
+  setTimeout(() => (host.innerHTML = ''), 1600);
+}
+
+/**
+ * Bedava dönüş GİRİŞ ekranı.
+ * Otomatik kapanmaz - oyuncu BAŞLA'ya basana kadar bekler ki tura girdiği
+ * kesinlikle fark edilsin. (Uzun süre dokunulmazsa kendiliğinden başlar.)
+ */
+async function showFreeSpinsIntro(count, scatterCount, retrigger = false) {
+  sfx.bigWin();
+  launchScatters(Math.max(3, scatterCount || 3));
+
+  $('fs-intro').querySelector('.fs-headline').textContent = retrigger
+    ? 'EK DÖNÜŞ!'
+    : 'KAZANDIN!';
+  $('fs-intro').querySelector('.fs-ribbon').textContent = retrigger
+    ? `${scatterCount} SCATTER`
+    : 'SCATTER';
+  $('fs-intro-count').textContent = '0';
+  $('fs-intro-mult').textContent = `x${state.config.freeSpins.multiplier}`;
+  $('fs-intro').hidden = false;
+
+  // Sayıyı yuvarlayarak göster
+  setTimeout(() => countUp($('fs-intro-count'), count, 900), 650);
+
+  await new Promise((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      $('fs-intro-start').removeEventListener('click', finish);
+      $('fs-intro').removeEventListener('click', finish);
+      resolve();
+    };
+    const timer = setTimeout(finish, retrigger ? 3200 : 9000);
+    $('fs-intro-start').addEventListener('click', finish);
+    $('fs-intro').addEventListener('click', finish);
+  });
+
+  $('fs-intro').hidden = true;
+  sfx.click();
+}
+
+/** Bedava dönüş BİTİŞ özeti. */
+async function showFreeSpinsOutro(round, bet) {
+  sfx.bigWin();
+  $('fs-outro-total').textContent = '0';
+  $('fs-outro-spins').textContent = fmt(round.spins);
+  $('fs-outro-best').textContent = fmt(round.best);
+  $('fs-outro-mult').textContent = `x${bet > 0 ? Math.round(round.total / bet) : 0}`;
+  $('fs-outro').hidden = false;
+  countUp($('fs-outro-total'), round.total, 1500);
+
+  await new Promise((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      $('fs-outro-collect').removeEventListener('click', finish);
+      $('fs-outro').removeEventListener('click', finish);
+      resolve();
+    };
+    const timer = setTimeout(finish, 9000);
+    $('fs-outro-collect').addEventListener('click', finish);
+    $('fs-outro').addEventListener('click', finish);
+  });
+
+  $('fs-outro').hidden = true;
+  sfx.click();
 }
 
 /* ================== Jackpot bonusu ================== */
@@ -339,34 +432,47 @@ async function doSpin() {
     await showJackpot(spin.jackpot);
   }
 
-  await celebrate(spin.totalWin, state.player.bet, { free: spin.free });
+  // Bedava dönüş kazanıldıysa jenerik "büyük kazanç" ekranı GÖSTERİLMEZ:
+  // turun kendi giriş ekranı zaten kutlamadır ve araya girmesi olayı
+  // anlaşılmaz kılıyordu. Scatter ödemesi tur özetine dahildir.
+  if (spin.freeSpinsAwarded === 0) {
+    await celebrate(spin.totalWin, state.player.bet, { free: spin.free });
+  }
+
+  // --- Bedava dönüş turu kaydı ---
+  if (spin.free && state.freeRound) {
+    state.freeRound.spins += 1;
+    state.freeRound.total += spin.totalWin;
+    if (spin.totalWin > state.freeRound.best) state.freeRound.best = spin.totalWin;
+    $('fs-total').textContent = fmt(state.freeRound.total);
+  }
 
   if (spin.freeSpinsAwarded > 0) {
-    sfx.bigWin();
-    $('celebration-title').textContent = spin.free ? 'EK BEDAVA DÖNÜŞ' : 'BEDAVA DÖNÜŞLER';
-    $('celebration-amount').textContent = `${spin.freeSpinsAwarded}`;
-    $('celebration-sub').textContent = `x${state.config.freeSpins.multiplier} çarpan ile`;
-    $('celebration').hidden = false;
-    await sleep(2200);
-    $('celebration').hidden = true;
-    $('celebration-sub').textContent = 'dokunarak devam et';
+    const retrigger = Boolean(spin.free);
+    if (!retrigger) {
+      state.freeRound = { spins: 0, total: 0, best: 0, bet: state.player.bet };
+    }
+    await showFreeSpinsIntro(spin.freeSpinsAwarded, spin.scatterCount, retrigger);
+    renderPlayer(state.player);
   }
 
   if (spin.freeSpinsSummary !== null && spin.freeSpinsSummary !== undefined) {
-    $('celebration-title').textContent = 'BEDAVA DÖNÜŞ TOPLAMI';
-    $('celebration-amount').textContent = fmt(spin.freeSpinsSummary);
-    $('celebration').hidden = false;
-    sfx.bigWin();
-    await sleep(2800);
-    $('celebration').hidden = true;
+    const round = state.freeRound || { spins: 0, total: spin.freeSpinsSummary, best: 0 };
+    round.total = spin.freeSpinsSummary;
+    await showFreeSpinsOutro(round, round.bet || state.player.bet);
+    state.freeRound = null;
+    document.body.classList.remove('free-mode');
+    $('fs-total').textContent = '0';
   }
 
   state.busy = false;
   $('spin').disabled = false;
 
-  // Bedava donusler otomatik oynanir.
+  // Bedava dönüşler otomatik oynanır. Tempo bilerek yavaştır: kazanç
+  // vurgusunun ve çarpanın görülmesi için turbo modda bile alt sınır vardır.
   if (state.player.freeSpins.remaining > 0) {
-    await sleep(state.turbo ? 250 : 700);
+    const hadWin = spin.totalWin > 0;
+    await sleep(state.turbo ? (hadWin ? 900 : 500) : hadWin ? 1900 : 1100);
     return doSpin();
   }
 

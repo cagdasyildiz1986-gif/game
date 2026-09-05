@@ -175,16 +175,29 @@ const SHAPES = {
     <path d="M42 26l5-11 5 11-5 4z" fill="#ffffff" opacity=".55"/>`,
 
   DOLLAR: `
-    <circle cx="50" cy="53" r="35" fill="url(#g-gold-deep)" ${OUTLINE}/>
-    <circle cx="50" cy="51" r="33" fill="url(#g-gold)" stroke="#8a5a05" stroke-width="2"/>
-    <circle cx="50" cy="51" r="26" fill="none" stroke="#8a5a05" stroke-width="2" opacity=".55"/>
-    <circle cx="50" cy="51" r="29.5" fill="none" stroke="#fff3c4" stroke-width="1.2" opacity=".5"/>
-    <text x="50" y="70" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
-      font-weight="bold" font-size="46" fill="#6b4404">$</text>
-    <text x="49" y="69" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
-      font-weight="bold" font-size="46" fill="#ffeaa0">$</text>
-    <path d="M28 34a30 30 0 0 1 20-13" stroke="#fff8d2" stroke-width="4" fill="none"
-      stroke-linecap="round" opacity=".7"/>`
+    <g class="scatter-burst">
+      <path d="M50 2l5.5 14.5L70 8l-2.5 15.5L82 18l-9.5 12.5L88 32l-13.5 8L88 48l-15.5 1.5L82 62l-14.5-5L70 72l-14.5-8.5L50 78l-5.5-14.5L30 72l2.5-15.5L18 62l9.5-13L12 48l13.5-8L12 32l15.5-1.5L18 18l14.5 5L30 8l14.5 8.5z"
+        fill="url(#g-star)" opacity=".55"/>
+    </g>
+    <circle cx="50" cy="44" r="30" fill="url(#g-gold-deep)" ${OUTLINE}/>
+    <circle cx="50" cy="42" r="28" fill="url(#g-gold)" stroke="#8a5a05" stroke-width="2"/>
+    <circle cx="50" cy="42" r="23" fill="none" stroke="#8a5a05" stroke-width="1.8" opacity=".5"/>
+    <text x="50" y="57" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+      font-weight="bold" font-size="38" fill="#6b4404">$</text>
+    <text x="49" y="56" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+      font-weight="bold" font-size="38" fill="#ffeaa0">$</text>
+    <path d="M32 28a26 26 0 0 1 17-11" stroke="#fff8d2" stroke-width="3.5" fill="none"
+      stroke-linecap="round" opacity=".7"/>
+
+    <!-- SCATTER kurdelesi: sembolu digerlerinden aninda ayirir -->
+    <path d="M8 72h84l-6 11H14z" fill="url(#g-red7)" ${OUTLINE} stroke-width="2"/>
+    <path d="M8 72l-4 5 4 6z" fill="#78070d"/>
+    <path d="M92 72l4 5-4 6z" fill="#78070d"/>
+    <text x="50" y="81.5" text-anchor="middle"
+      font-family="'Arial Black', Impact, system-ui, sans-serif"
+      font-size="10.5" font-weight="900" letter-spacing="1.1"
+      textLength="66" lengthAdjust="spacingAndGlyphs"
+      fill="#fff6d8" stroke="#5e050a" stroke-width="2.4" paint-order="stroke">SCATTER</text>`
 };
 
 export function buildSprite() {
