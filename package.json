@@ -15,7 +15,8 @@
     "cap:add:android": "npx cap add android",
     "cap:add:ios": "npx cap add ios",
     "build:demo": "node tools/build-demo.js",
-    "test": "node tools/test-hands.js && node tools/test-holdem.js && node tools/test-blackjack.js"
+    "test": "node tools/test-hands.js && node tools/test-holdem.js && node tools/test-blackjack.js",
+    "analyze": "node tools/analyze.js"
   },
   "engines": {
     "node": ">=18"
