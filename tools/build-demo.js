@@ -18,6 +18,8 @@ fs.cpSync(path.join(root, 'public'), dist, { recursive: true });
 fs.cpSync(path.join(root, 'server', 'game'), path.join(dist, 'engine'), { recursive: true });
 // Site modulleri (katalog, gorevler) demo arka ucu tarafindan da kullanilir.
 fs.cpSync(path.join(root, 'server', 'site'), path.join(dist, 'engine', 'site'), { recursive: true });
+// Oyuna ozel motorlar (7 HOT gibi) da ayni matematigi paylasir.
+fs.cpSync(path.join(root, 'server', 'games'), path.join(dist, 'engine', 'games'), { recursive: true });
 
 // rng.js node:crypto kullanir; tarayici surumunde gerekmez.
 fs.rmSync(path.join(dist, 'engine', 'rng.js'), { force: true });

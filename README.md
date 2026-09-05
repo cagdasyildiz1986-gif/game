@@ -6,10 +6,12 @@ Android/iOS uygulamasına dönüştürülebilir.
 
 Dört katman vardır:
 
-1. **Site (AURUM)** — lobi, 105 oyunluk katalog, kategoriler, arama, favoriler,
+1. **Site (AURUM)** — lobi, 106 oyunluk katalog, kategoriler, arama, favoriler,
    üyelik, kalıcı bakiye, detaylı profil ve görev/puan sistemi.
-2. **Slot (Lucky Reels)** — EGT ve Pragmatic Play tarzı 5x3, 20 sabit hatlı video slot;
-   bedava dönüşler, Jackpot Cards bonusu ve sunucu taraflı RNG.
+2. **Slotlar** — iki tam oynanabilir motor, ikisi de sunucu taraflı RNG ile:
+   - **Lucky Reels** — 5x3, 20 sabit hat; bedava dönüşler ve Jackpot Cards bonusu.
+   - **7 HOT · Çan Zinciri** — 5x4, 40 hat; scatter tutmalı respin, "tut ve kazan"
+     çan turu ve dört kademeli jackpot merdiveni.
 3. **Canlı masalar** — gerçek zamanlı **Texas Hold'em** (oyuncuya karşı, ev oynamaz) ve
    **Blackjack** (krupiye sabit kurallarla oynar). Masa açma, arkadaş daveti, özel masa.
 4. **Yönetim paneli** — kullanıcı yönetimi, bakiye tanımlama, oyun kazanç/kayıp
@@ -62,19 +64,17 @@ npm install && npm start   # http://localhost:3000
 
 | | |
 |---|---|
-| **Site** | 105 oyunluk katalog, 8 kategori, 8 sağlayıcı, arama, favoriler, görevler |
+| **Site** | 106 oyunluk katalog, 8 kategori, 8 sağlayıcı, arama, favoriler, görevler |
 | **Canlı** | Texas Hold'em ve Blackjack, WebSocket, özel masa + davet kodu, bot koltukları |
 | **Yönetim** | Kullanıcı/bakiye yönetimi, RTP ve masa ayarları, bakiye kayıt defteri |
 | **Para birimi** | TL (₺) varsayılan; USD/EUR/Çip seçilebilir — yalnızca gösterim |
-| **Testler** | 63 birim testi + 16 uçtan uca canlı masa testi (`npm test`) |
+| **Testler** | 72 birim testi + 16 uçtan uca canlı masa testi (`npm test`) |
 | **Üyelik** | Kayıt/giriş (scrypt), kalıcı bakiye, misafirden hesaba yükseltme |
 | **Puan** | Satılmaz — yalnızca görevlerle ve oyun kazançlarıyla elde edilir |
-| **Oyun** | 5 makara × 3 satır, 20 sabit ödeme hattı |
-| **Semboller** | 8 ödeme sembolü + Yıldız (WILD) + Dolar (SCATTER) |
-| **Özellikler** | Bedava dönüşler (x3 çarpan, retrigger), Jackpot Cards bonusu (4 seviyeli progresif) |
-| **RTP** | ~%95,8 (10 milyon dönüşlük simülasyonla ölçülmüş — `npm run simulate`) |
-| **Jackpot** | 4 seviyeli progresif; bahisle orantılı tetiklenme (referans bahiste 1/2.500) |
-| **Kapaklar** | 105 oyunun kapağı vektörel üretilir — tek bayt görsel dosyası yok |
+| **Lucky Reels** | 5×3, 20 hat · bedava dönüş (x3, retrigger) · Jackpot Cards · RTP ~%95,8 |
+| **7 HOT** | 5×4, 40 hat · scatter tutmalı respin · Çan Zinciri (tut & kazan) · RTP ~%95,6 |
+| **Jackpotlar** | Lucky Reels: 4 progresif havuz · 7 HOT: Mini/Minör/Majör sabit + Grand progresif |
+| **Kapaklar** | 106 oyunun kapağı vektörel üretilir — tek bayt görsel dosyası yok |
 | **Güvenlik** | Tüm matematik ve RNG **sunucuda**; istemci sadece sonucu canlandırır |
 | **Adalet** | HMAC-SHA256 tabanlı *provably fair* (sunucu tohumu + istemci tohumu + nonce) |
 | **Arayüz** | Mobil öncelikli, dokunmatik, turbo + otomatik oyun, offline kabuk (PWA) |
@@ -123,15 +123,23 @@ server/
     reels.js            Sanal makara şeritleri (RTP buradan ayarlanır)
     engine.js           Spin çözümleme: hatlar, scatter, çarpanlar
     jackpot.js          Progresif havuzlar + Jackpot Cards mini oyunu
+    session.js          Bir spinin oyuncu durumuna etkisi (sunucu + demo ortak)
     rng.js              Kriptografik / doğrulanabilir / deterministik RNG
-  routes/game.js        REST API
+  games/sevenhot/       7 HOT · Çan Zinciri (5x4, 40 hat)
+    config.js           Semboller, ödeme tablosu, çan değerleri, jackpot merdiveni, şeritler
+    paylines.js         40 sabit ödeme hattı
+    engine.js           Çevirme, hat/scatter değerlendirme, tutmalı respin, çan turu
+    session.js          Tur akışı: bakiye, bedava dönüş, jackpot muhasebesi
+  routes/game.js        Lucky Reels REST API
+  routes/sevenhot.js    7 HOT REST API
   store/memory.js       Oyuncu deposu (bellek + JSON dosyası)
 public/
   css/site.css          Tasarım sistemi: açık tema varsayılan, koyu tema
                         `<html data-theme="dark">` ile açılır. Tüm sayfalar
                         aynı token setini (renk, gölge, yarıçap) kullanır.
   index.html            Site (lobi) iskeleti
-  game.html             Slot oyunu sayfası
+  game.html             Lucky Reels oyun sayfası
+  sevenhot.html         7 HOT · Çan Zinciri oyun sayfası
   live.html             Canlı masa (poker / blackjack)
   admin.html            Yönetim paneli
   css/site.css          Site tasarım sistemi
@@ -141,18 +149,23 @@ public/
   js/admin.js           Yönetim paneli arayüzü
   js/cover.js           Oyun kapaklarının vektörel üreticisi
   js/icons.js           Arayüz ikonları
-  js/app.js             Oyun akışı ve arayüz mantığı
+  js/app.js             Lucky Reels akışı ve arayüz mantığı
   js/reels.js           Makara animasyonu (Web Animations API)
-  js/symbols.js         SVG sembol sprite'ı
+  js/symbols.js         SVG sembol sprite'ı (meyve seti ortak)
+  js/sevenhot.js        7 HOT tur canlandırması (respin, çan turu, bedava dönüş)
+  js/sevenhot-reels.js  5x4 makara + makara tutma + kilitli çan tahtası
+  js/sevenhot-symbols.js  BAR, alevli 7, alevli WILD ve çan ailesi
   js/audio.js           Web Audio ile sentezlenen ses efektleri
   js/api.js             Sunucu iletişimi
   js/env.js             API adresi ve demo modu bayrağı
   js/demo.js            Sunucusuz demo arka ucu (GitHub Pages sürümü)
   sw.js                 Service worker (offline kabuk)
-tools/simulate.js       RTP / volatilite simülasyonu
+tools/simulate.js       Lucky Reels RTP / volatilite simülasyonu
+tools/simulate-7hot.js  7 HOT RTP simülasyonu (bileşen bileşen döküm)
 tools/test-hands.js     El değerlendirici testleri
 tools/test-holdem.js    Hold'em motoru testleri (çip korunumu dahil)
 tools/test-blackjack.js Blackjack testleri
+tools/test-sevenhot.js  7 HOT tur değişmezleri (bakiye, çan tahtası, jackpot kuralları)
 tools/build-demo.js     GitHub Pages demo derlemesi (dist/)
 .github/workflows/      Pages yayın akışı
 .devcontainer/          Codespaces yapılandırması
@@ -189,14 +202,14 @@ Hızlı Oyunlar — ayrıca Favoriler.
 sıfırlanır; kilometre taşları (ilk dönüş, kayıt, ilk bonus turu, 1.000 dönüş, jackpot)
 kalıcıdır. Ödüller `Topla` ile bakiyeye eklenir.
 
-**Oyun kapakları:** Katalogda 105 oyun var ve hiçbiri için görsel dosyası yok.
+**Oyun kapakları:** Katalogda 106 oyun var ve hiçbiri için görsel dosyası yok.
 Her oyunun bir **palet** (16 seçenek) ve **motif**i (24 seçenek) vardır;
 `public/js/cover.js` bunlardan arka plan, ışık huzmeleri, motif ve altın konturlu
 başlık kilidi olan bir SVG üretir.
 
-**Not:** Şu an tam olarak oynanabilen oyun Lucky Reels'tir. Katalogdaki diğer oyunlar
-site yapısını, kategori akışını ve arama deneyimini göstermek için durur; oyun
-detay sayfasında bu açıkça belirtilir.
+**Not:** Şu an tam olarak oynanabilen oyunlar **Lucky Reels** ve **7 HOT · Çan Zinciri**'dir.
+Katalogdaki diğer oyunlar site yapısını, kategori akışını ve arama deneyimini göstermek
+için durur; oyun detay sayfasında bu açıkça belirtilir.
 
 ---
 
@@ -271,6 +284,8 @@ uygulamak mümkün değildir; bu bilinçli bir tasarım kararıdır.
 
 ## Oyun matematiği
 
+### Lucky Reels (5×3, 20 hat)
+
 **Ödeme tablosu** (hat bahsi çarpanı — toplam bahis / 20):
 
 | Sembol | 3× | 4× | 5× |
@@ -294,16 +309,61 @@ scatterlar +5 dönüş ekler.
 açan oyuncu ilgili progresif havuzu kazanır: ♣ Sinek, ♦ Karo, ♥ Kupa, ♠ Maça.
 Bahsin %1'i havuzlara aktarılır.
 
+### 7 HOT · Çan Zinciri (5×4, 40 hat)
+
+Meyve slotu + **tut ve kazan** (hold & win) çan turu. Bu mekanik ailesi sektörde
+yaygındır; buradaki semboller, oranlar, ödeme tablosu ve denge bu projeye özgüdür.
+
+**Ödeme tablosu** (hat bahsi çarpanı — toplam bahis / 40):
+
+| Sembol | 3× | 4× | 5× |
+|---|---|---|---|
+| 7️⃣ Yedi | 40 | 200 | 1000 |
+| 🟨 Bar | 25 | 120 | 600 |
+| 🍉 Karpuz | 15 | 60 | 300 |
+| 🍇 Üzüm | 12 | 45 | 220 |
+| 🍊 Portakal | 6 | 27 | 130 |
+| 🫐 Erik | 6 | 27 | 130 |
+| 🍋 Limon | 4 | 15 | 80 |
+| 🍒 Kiraz | 4 | 15 | 80 |
+
+**WILD** yalnızca 2., 3. ve 4. makarada görünür; scatter ve çan yerine geçmez.
+
+**Scatter (💲 Dolar)** — toplam bahis çarpanı: 3× → 2, 4× → 10, 5× → 50.
+Ekranda 2–4 scatter varsa **scatter'lı makaralar tutulur**, kalanlar yeniden döner;
+yeni scatter gelmezse respin biter. 3 scatter 8, 4 scatter 15, 5 scatter 25
+**bedava dönüş** verir. Bedava dönüş şeritlerinde çan bulunmaz.
+
+**Çan Zinciri** — ekrana 5 çan düşerse tur başlar. Çanlar kilitlenir, boş kareler
+döner; her yeni çan sayacı 3 dönüşe sıfırlar. Tur sonunda tüm çanlar ödenir.
+
+- Ekran tamamen dolarsa nakit çanlar **x3** (Boost çanı varsa **x4**) çarpanla ödenir.
+- **Boost** çanı tur sonunda toplam bahsin 10 katı nakde döner.
+- **Grand** çanı bilerek sık düşer ama tek başına ödemez: jackpot için ekranda
+  **3 tane** gerekir. Olmazsa her biri toplam bahsin 15–35 katı nakde döner.
+
+**Jackpot merdiveni** — Mini (bahsin 20 katı), Minör (100), Majör (800) **sabit**
+katlardır; böylece her bahis seviyesinde adil çalışırlar. Grand tek **progresif**
+havuzdur ve her dönüşün %1,2'sinden beslenir.
+
+4 milyon dönüşlük ölçüm: hat %46,3 · scatter %5,1 · bedava dönüş %7,4 ·
+Çan Zinciri %36,9 → **toplam %95,6**.
+
 ### Testler
 
 ```bash
-npm test          # 63 birim testi (el değerlendirici, Hold'em, Blackjack)
-npm run simulate  # RTP / volatilite simülasyonu
+npm test              # 72 birim testi (el değerlendirici, Hold'em, Blackjack, 7 HOT)
+npm run simulate      # Lucky Reels RTP / volatilite simülasyonu
+npm run simulate:7hot # 7 HOT RTP simülasyonu
 ```
 
 Hold'em testleri arasında **~15.000 rastgele elde çip korunumu** kontrolü vardır;
 bu test, yan potlarda çip kaybına yol açan gerçek bir hatayı yakaladı
 (katkıda bulunanların hepsi çekildiğinde yan pot yok sayılıyordu).
+
+7 HOT testi 300.000 turu oynatıp her turda bakiye muhasebesini, çan tahtasının
+kapasitesini, Grand'ın üç-çan kuralını ve tam ekran çarpanının Majör/Grand'a
+uygulanmadığını doğrular.
 
 ### RTP'yi ölçme ve ayarlama
 
@@ -366,16 +426,26 @@ Tüm istekler `Authorization: Bearer <token>` başlığı ister (`/config`, `/se
 | `POST` | `/api/admin/users/:id/ban` | Hesap engelleme |
 | `POST` | `/api/admin/settings` | Sistem ve oyun ayarları |
 | `WS` | `/live` | Canlı masalar (auth, create, join, action, bet, chat, invite) |
-| `GET` | `/api/config` | Semboller, ödeme tablosu, hatlar, bahis seviyeleri, RTP, para birimi |
-| `POST` | `/api/bet` | Bahis seviyesi değiştir |
-| `POST` | `/api/spin` | Dönüş yap → grid, kazançlar, bakiye |
-| `GET` | `/api/jackpots` | Güncel progresif havuzlar |
+| `GET` | `/api/config` | Lucky Reels: semboller, ödeme tablosu, hatlar, bahisler, RTP |
+| `POST` | `/api/bet` | Lucky Reels bahis seviyesi değiştir |
+| `POST` | `/api/spin` | Lucky Reels dönüşü → grid, kazançlar, bakiye |
+| `GET` | `/api/jackpots` | Lucky Reels progresif havuzları |
+| `GET` | `/api/sevenhot/config` | 7 HOT: semboller, ödeme tablosu, çan turu kuralları, jackpot merdiveni |
+| `GET` | `/api/sevenhot/state` | 7 HOT: bahis ve kalan bedava dönüş |
+| `POST` | `/api/sevenhot/bet` | 7 HOT bahis seviyesi değiştir |
+| `POST` | `/api/sevenhot/spin` | 7 HOT turu → temel çevirme + respin adımları + çan turu |
+| `GET` | `/api/sevenhot/jackpots` | 7 HOT jackpot merdiveni (bahse göre) |
 | `POST` | `/api/fair/client-seed` | İstemci tohumunu değiştir |
 | `POST` | `/api/fair/rotate` | Sunucu tohumunu açıkla ve yenile |
 
 **Neden sunucu tarafı?** İstemci hiçbir zaman sonucu üretmez. Bakiye, bahis kontrolü,
 RNG, ödeme hesabı ve jackpot havuzları tamamen sunucudadır; istemciye yalnızca
 sonuç gönderilir. Böylece tarayıcı konsolundan bakiye veya sonuç değiştirilemez.
+
+7 HOT'ta bir tur (temel çevirme → tutmalı respin → Çan Zinciri) **tek istekte**
+baştan sona sunucuda çözülür ve istemciye adım adım canlandırılacak bir betimleme
+döner. Ara durum istemcide tutulmadığı için kurcalanacak bir şey kalmaz ve
+bağlantı koparsa bakiye tutarlı kalır.
 
 ### Doğrulanabilir adalet
 

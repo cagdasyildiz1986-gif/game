@@ -23,6 +23,13 @@ import {
 } from '../engine/site/catalog.js';
 import { initialTaskState, taskView, claim as claimTask, advance, applySpinToTasks, rollDaily }
   from '../engine/site/tasks.js';
+import {
+  playRound as hotPlayRound,
+  ensureState as hotEnsureState,
+  createPools as hotCreatePools
+} from '../engine/games/sevenhot/session.js';
+import * as HOT from '../engine/games/sevenhot/config.js';
+import { PAYLINES as HOT_PAYLINES } from '../engine/games/sevenhot/paylines.js';
 
 const STORAGE_KEY = 'lucky-reels-demo-state';
 const BET_LEVELS = [20, 40, 100, 200, 400, 1000, 2000];
@@ -74,7 +81,8 @@ function freshState() {
       tasks: initialTaskState(),
       lastSpinAt: 0
     },
-    pools: createPools()
+    pools: createPools(),
+    hotPools: hotCreatePools()
   };
 }
 
@@ -140,6 +148,7 @@ function gameView(game) {
     rtp: game.rtp,
     playable: game.playable,
     engine: game.engine,
+    page: game.page,
     isNew: game.isNew,
     isHot: game.isHot,
     hasJackpot: game.hasJackpot,
@@ -156,6 +165,23 @@ function jackpotView() {
     name: level.name,
     suit: level.suit,
     amount: round2(state.pools[level.id])
+  }));
+}
+
+/** Eski kayitlarda 7 HOT havuzu bulunmayabilir. */
+function hotPools() {
+  if (!state.hotPools) state.hotPools = hotCreatePools();
+  return state.hotPools;
+}
+
+function hotJackpotView(totalBet) {
+  const pools = hotPools();
+  return HOT.JACKPOTS.levels.map((level) => ({
+    id: level.id,
+    name: level.name,
+    color: level.color,
+    progressive: Boolean(level.progressive),
+    amount: round2(HOT.jackpotAmount(level.id, totalBet, pools))
   }));
 }
 
@@ -220,6 +246,85 @@ export const demoApi = {
   },
   async jackpots() {
     return { jackpots: jackpotView() };
+  },
+
+  /* ---- 7 HOT · Çan Zinciri (sunucudaki rotaların birebir karşılığı) ---- */
+  hot: {
+    async config() {
+      return {
+        name: '7 HOT · Çan Zinciri',
+        currency: { code: 'TRY', symbol: '₺', name: 'Türk Lirası', locale: 'tr-TR' },
+        rtp: 95.6,
+        reels: HOT.REELS,
+        rows: HOT.ROWS,
+        lines: HOT.LINES,
+        symbols: HOT.SYMBOLS,
+        wild: HOT.WILD,
+        wildReels: HOT.WILD_REELS,
+        scatter: HOT.SCATTER,
+        bell: HOT.BELL,
+        paytable: HOT.PAYTABLE,
+        scatterPay: HOT.SCATTER_PAY,
+        freeSpins: HOT.FREE_SPINS,
+        scatterRespin: HOT.SCATTER_RESPIN,
+        bellRound: HOT.BELL_ROUND,
+        bellValues: HOT.BELL_VALUES.map(({ id, value, jackpot }) => ({ id, value, jackpot })),
+        paylines: HOT_PAYLINES,
+        betLevels: HOT.BET_LEVELS,
+        defaultBet: HOT.DEFAULT_BET,
+        jackpotLevels: HOT.JACKPOTS.levels.map(({ id, name, color, progressive, fixed }) => ({
+          id, name, color, progressive: Boolean(progressive), fixed: fixed || 0
+        }))
+      };
+    },
+    async state() {
+      const st = hotEnsureState(state.player);
+      persist();
+      return {
+        state: { bet: st.bet, free: { ...st.free, win: round2(st.free.win) } },
+        player: publicPlayer(),
+        jackpots: hotJackpotView(st.bet)
+      };
+    },
+    async setBet(bet) {
+      const st = hotEnsureState(state.player);
+      if (!HOT.BET_LEVELS.includes(bet)) throw new Error('Geçersiz bahis seviyesi.');
+      if (st.free.remaining > 0) {
+        throw new Error('Bedava dönüşler sırasında bahis değiştirilemez.');
+      }
+      st.bet = bet;
+      persist();
+      return { state: { bet: st.bet, free: st.free }, jackpots: hotJackpotView(bet) };
+    },
+    async jackpots(bet) {
+      return { jackpots: hotJackpotView(Number(bet) || HOT.DEFAULT_BET) };
+    },
+    async spin(bet) {
+      hotPools();
+      const { error, round } = hotPlayRound({
+        player: state.player,
+        pools: state.hotPools,
+        rng,
+        bet
+      });
+      if (error) throw new Error(error);
+      state.player.xp = (state.player.xp || 0) + Math.max(1, Math.round(round.bet / 10));
+      applySpinToTasks(state.player.tasks, {
+        spin: {
+          totalWin: round.totalWin,
+          freeSpinsAwarded: round.freeSpinsAwarded,
+          jackpot: round.bellRound?.jackpotWins?.[0] || null
+        },
+        bet: round.bet,
+        totalSpins: state.player.stats.spins
+      });
+      persist();
+      return {
+        round: { ...round, nonce: state.player.stats.spins },
+        player: publicPlayer(),
+        jackpots: hotJackpotView(round.bet)
+      };
+    }
   },
 
   /* ---- Hesap (demo: yerel) ---- */
