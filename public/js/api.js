@@ -151,6 +151,14 @@ export const api = {
     jackpots: (bet) => request(`/sevenhot/jackpots?bet=${encodeURIComponent(bet)}`)
   },
 
+  /* ---- YILDIRIM · Göklerin Öfkesi ---- */
+  storm: {
+    config: () => request('/yildirim/config'),
+    state: () => request('/yildirim/state'),
+    setBet: (bet) => request('/yildirim/bet', { method: 'POST', body: { bet } }),
+    spin: (bet) => request('/yildirim/spin', { method: 'POST', body: { bet } })
+  },
+
   async setClientSeed(clientSeed) {
     return request('/fair/client-seed', { method: 'POST', body: { clientSeed } });
   },
