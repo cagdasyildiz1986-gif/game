@@ -1,0 +1,22 @@
+{
+  "appId": "com.luckyreels.slot",
+  "appName": "Lucky Reels",
+  "webDir": "public",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#0b0716"
+  },
+  "ios": {
+    "backgroundColor": "#0b0716",
+    "contentInset": "always"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "backgroundColor": "#0b0716",
+      "showSpinner": false,
+      "launchAutoHide": true
+    }
+  }
+}

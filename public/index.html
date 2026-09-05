@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Lucky Reels · Slot</title>
+<meta name="description" content="Mobil slot oyunu - sanal kredi ile oynanır, gerçek para yoktur.">
+<meta name="theme-color" content="#0b0716">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/icon.svg">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="sprite-host" aria-hidden="true"></div>
+
+<div id="loader" class="loader">
+  <div class="loader-logo">LUCKY <span>REELS</span></div>
+  <div class="loader-bar"><i></i></div>
+  <p class="loader-note">Sanal kredi ile oynanır · Gerçek para yoktur</p>
+</div>
+
+<div id="app" class="app" hidden>
+
+  <header class="topbar">
+    <button class="icon-btn" id="btn-menu" aria-label="Menü">☰</button>
+    <div class="jackpots" id="jackpots"></div>
+    <button class="icon-btn" id="btn-sound" aria-label="Ses">🔊</button>
+  </header>
+
+  <main class="stage">
+    <div class="logo">LUCKY <span>REELS</span></div>
+    <div class="machine">
+      <div class="fs-badge" id="fs-badge" hidden>
+        <span id="fs-count">0</span> BEDAVA DÖNÜŞ · x<span id="fs-mult">3</span>
+      </div>
+
+      <div class="frame">
+        <div class="reels" id="reels"></div>
+        <svg class="lines" id="lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="fx" id="fx"></div>
+      </div>
+
+      <div class="winbar">
+        <span class="winbar-label">KAZANÇ</span>
+        <span class="winbar-value" id="win-value">0</span>
+        <span class="winbar-info" id="win-info"></span>
+      </div>
+    </div>
+  </main>
+
+  <footer class="controls">
+    <div class="meters">
+      <div class="meter">
+        <span class="meter-label">BAKİYE</span>
+        <span class="meter-value" id="balance">0</span>
+      </div>
+      <div class="meter">
+        <span class="meter-label">BAHİS</span>
+        <span class="meter-value" id="bet">0</span>
+      </div>
+    </div>
+
+    <div class="pad">
+      <div class="bet-controls">
+        <button class="round-btn" id="bet-down" aria-label="Bahis azalt">−</button>
+        <button class="round-btn" id="bet-up" aria-label="Bahis artır">+</button>
+      </div>
+
+      <button class="spin-btn" id="spin" aria-label="Çevir">
+        <span class="spin-inner"><span id="spin-label">ÇEVİR</span></span>
+      </button>
+
+      <div class="aux-controls">
+        <button class="round-btn" id="btn-turbo" aria-label="Turbo mod">⚡</button>
+        <button class="round-btn" id="btn-auto" aria-label="Otomatik oyun">A</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ===== Modallar ===== -->
+
+<div class="modal" id="modal-paytable" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>Ödeme Tablosu</h2>
+      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
+    </header>
+    <div class="modal-body" id="paytable-body"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal-menu" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>Menü</h2>
+      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
+    </header>
+    <div class="modal-body">
+      <button class="wide-btn" id="menu-paytable">📋 Ödeme Tablosu &amp; Kurallar</button>
+      <button class="wide-btn" id="menu-fair">🔒 Doğrulanabilir Adalet</button>
+      <button class="wide-btn" id="menu-stats">📊 İstatistikler</button>
+      <button class="wide-btn danger" id="menu-reset">♻️ Oturumu Sıfırla</button>
+      <p class="fineprint">
+        Bu oyun yalnızca eğlence amaçlıdır. Sanal kredilerin parasal karşılığı yoktur ve
+        gerçek para ile satın alınamaz veya nakde çevrilemez. 18+
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal-fair" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>Doğrulanabilir Adalet</h2>
+      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
+    </header>
+    <div class="modal-body" id="fair-body"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal-stats" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>İstatistikler</h2>
+      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
+    </header>
+    <div class="modal-body" id="stats-body"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal-auto" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>Otomatik Oyun</h2>
+      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
+    </header>
+    <div class="modal-body">
+      <p class="muted">Kaç dönüş otomatik oynansın?</p>
+      <div class="chip-row" id="auto-options"></div>
+      <button class="wide-btn danger" id="auto-stop">Otomatik Oyunu Durdur</button>
+    </div>
+  </div>
+</div>
+
+<div class="celebration" id="celebration" hidden>
+  <div class="celebration-inner">
+    <div class="celebration-title" id="celebration-title">BÜYÜK KAZANÇ</div>
+    <div class="celebration-amount" id="celebration-amount">0</div>
+    <div class="celebration-sub" id="celebration-sub">dokunarak devam et</div>
+  </div>
+</div>
+
+<div class="modal jackpot-modal" id="modal-jackpot" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>🃏 Jackpot Cards</h2>
+    </header>
+    <div class="modal-body">
+      <p class="muted">Aynı türden 3 kart bulan jackpot'u kazanır!</p>
+      <div class="cards" id="jackpot-cards"></div>
+      <div class="jackpot-result" id="jackpot-result" hidden></div>
+      <button class="wide-btn" id="jackpot-close" hidden>Topla</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="/js/env.js"></script>
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>
