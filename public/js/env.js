@@ -8,3 +8,10 @@
  *   window.SLOT_API_BASE = 'https://api.sizinsiteniz.com';
  */
 window.SLOT_API_BASE = '';
+
+/**
+ * Demo modu. `true` olursa oyun sunucusuz calisir: motor tarayiciya yuklenir.
+ * GitHub Pages derlemesi bu degeri otomatik olarak `true` yapar.
+ * Uretimde (Node sunucusu veya native uygulama) `false` kalmalidir.
+ */
+window.SLOT_DEMO = false;

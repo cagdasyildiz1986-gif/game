@@ -1,12 +1,11 @@
 import express from 'express';
 import crypto from 'node:crypto';
 import { config } from '../config.js';
-import { resolveSpin } from '../game/engine.js';
+import { applySpin } from '../game/session.js';
 import { ProvablyFairRng, newServerSeed, hashSeed } from '../game/rng.js';
 import { PAYTABLE, SCATTER_PAY, FREE_SPINS, JACKPOT } from '../game/paytable.js';
 import { PAYLINES } from '../game/paylines.js';
 import { SYMBOLS, WILD, SCATTER } from '../game/symbols.js';
-import * as jackpot from '../game/jackpot.js';
 import {
   createPlayer,
   getPlayer,
@@ -103,87 +102,24 @@ router.post('/spin', auth, (req, res) => {
     return res.status(429).json({ error: 'Çok hızlı. Biraz yavaşlayın.' });
   }
 
-  const isFree = player.freeSpins.remaining > 0;
-
-  if (!isFree) {
-    const bet = Number(req.body?.bet ?? player.bet);
-    if (!config.betLevels.includes(bet)) {
-      return res.status(400).json({ error: 'Geçersiz bahis seviyesi.' });
-    }
-    player.bet = bet;
-    if (player.balance < bet) {
-      return res.status(400).json({ error: 'Yetersiz bakiye.' });
-    }
-  }
-
-  const bet = player.bet;
   const rng = new ProvablyFairRng(player.fair.serverSeed, player.fair.clientSeed, player.fair.nonce);
+  const nonce = player.fair.nonce;
   player.fair.nonce += 1;
 
-  if (!isFree) {
-    player.balance -= bet;
-    player.stats.wagered += bet;
-    jackpot.contribute(getJackpots(), bet);
-  }
+  const { error, spin } = applySpin({
+    player,
+    pools: getJackpots(),
+    rng,
+    bet: req.body?.bet,
+    betLevels: config.betLevels
+  });
 
-  const result = resolveSpin({ rng, totalBet: bet, free: isFree });
+  if (error) return res.status(400).json({ error });
 
-  // Jackpot Cards bonusu yalnizca ucretli spinlerde tetiklenir.
-  let jackpotWin = null;
-  if (!isFree && jackpot.shouldTrigger(rng, bet, config.betLevels[0])) {
-    const game = jackpot.playCardGame(rng);
-    const claimed = jackpot.claim(getJackpots(), game.levelId);
-    jackpotWin = {
-      levelId: game.levelId,
-      name: claimed.level.name,
-      suit: claimed.level.suit,
-      draws: game.draws,
-      amount: round2(claimed.amount)
-    };
-  }
-
-  let win = result.totalWin;
-  if (jackpotWin) win += jackpotWin.amount;
-
-  player.balance += win;
-  player.stats.spins += 1;
-  player.stats.won += win;
-  if (win > player.stats.biggestWin) player.stats.biggestWin = win;
-
-  if (isFree) {
-    player.freeSpins.remaining -= 1;
-    player.freeSpins.win += win;
-  }
-  if (result.freeSpinsAwarded > 0) {
-    player.freeSpins.remaining += result.freeSpinsAwarded;
-    player.freeSpins.total += result.freeSpinsAwarded;
-    player.freeSpins.multiplier = FREE_SPINS.multiplier;
-    if (!isFree) player.freeSpins.win = 0;
-  }
-
-  const sessionEnded = isFree && player.freeSpins.remaining === 0;
-  const freeSpinsSummary = sessionEnded ? round2(player.freeSpins.win) : null;
-  if (sessionEnded) {
-    player.freeSpins.multiplier = 1;
-    player.freeSpins.total = 0;
-  }
-
-  player.lastSpinAt = Date.now();
   save();
 
   res.json({
-    spin: {
-      grid: result.grid,
-      wins: result.wins.map((w) => ({ ...w, amount: round2(w.amount) })),
-      totalWin: round2(result.totalWin),
-      multiplier: result.multiplier,
-      scatterCount: result.scatterCount,
-      free: isFree,
-      freeSpinsAwarded: result.freeSpinsAwarded,
-      jackpot: jackpotWin,
-      freeSpinsSummary,
-      nonce: player.fair.nonce - 1
-    },
+    spin: { ...spin, nonce },
     player: publicPlayer(player),
     jackpots: jackpotView()
   });

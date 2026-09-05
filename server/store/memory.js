@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import { config } from '../config.js';
 import { createPools } from '../game/jackpot.js';
 import { newServerSeed, hashSeed } from '../game/rng.js';
+import { round2 } from '../game/session.js';
 
 /**
  * Basit bellek ici depo + JSON dosyasina kalici yazma.
@@ -106,8 +107,6 @@ export function publicPlayer(player) {
   };
 }
 
-export function round2(value) {
-  return Math.round(value * 100) / 100;
-}
+export { round2 };
 
 load();

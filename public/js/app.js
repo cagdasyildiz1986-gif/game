@@ -16,6 +16,8 @@ const state = {
 };
 
 let reelSet = null;
+/** Aktif arka uç: sunucu API'si veya (statik barındırmada) tarayıcı demo motoru. */
+let backend = api;
 
 /* ================== Yardimcilar ================== */
 const $ = (id) => document.getElementById(id);
@@ -255,7 +257,7 @@ async function doSpin() {
 
   let data;
   try {
-    data = await api.spin(state.player.bet);
+    data = await backend.spin(state.player.bet);
   } catch (err) {
     toast(err.message);
     stopAuto();
@@ -422,13 +424,13 @@ function renderFair() {
   `;
   $('fair-rotate').onclick = async () => {
     try {
-      const data = await api.rotateSeed();
+      const data = await backend.rotateSeed();
       $('fair-reveal').innerHTML = `
         <div class="pt-section">Açıklanan sunucu tohumu</div>
         <p class="mono">${data.revealedServerSeed}</p>
         <p class="pt-note">Bu tohumun SHA-256 özeti yukarıda gösterilen değerle aynı olmalıdır.</p>
         <p class="mono">${data.revealedHash}</p>`;
-      const st = await api.state();
+      const st = await backend.state();
       renderPlayer(st.player);
     } catch (err) {
       toast(err.message);
@@ -457,7 +459,7 @@ async function changeBet(direction) {
   if (next === state.player.bet) return;
   sfx.click();
   try {
-    const data = await api.setBet(next);
+    const data = await backend.setBet(next);
     renderPlayer(data.player);
   } catch (err) {
     toast(err.message);
@@ -538,8 +540,8 @@ function bindEvents() {
   });
   $('menu-reset').addEventListener('click', async () => {
     stopAuto();
-    api.clearToken();
-    const data = await api.session('Misafir');
+    backend.clearToken();
+    const data = await backend.session('Misafir');
     renderPlayer(data.player);
     renderJackpots(data.jackpots);
     closeModal('modal-menu');
@@ -572,8 +574,17 @@ function bindEvents() {
 async function boot() {
   document.getElementById('sprite-host').innerHTML = buildSprite();
 
+  // Statik barındırmada (GitHub Pages) sunucu yoktur; oyun motoru tarayıcıda çalışır.
+  if (window.SLOT_DEMO) {
+    const { demoApi } = await import('./demo.js');
+    backend = demoApi;
+    document.getElementById('demo-badge').hidden = false;
+    // Doğrulanabilir adalet sunucu tohumu gerektirir; demo modunda yoktur.
+    document.getElementById('menu-fair').hidden = true;
+  }
+
   try {
-    const [config, session] = await Promise.all([api.config(), api.session('Misafir')]);
+    const [config, session] = await Promise.all([backend.config(), backend.session('Misafir')]);
     state.config = config;
     renderJackpots(session.jackpots);
 
@@ -593,7 +604,7 @@ async function boot() {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
   });
 }
 

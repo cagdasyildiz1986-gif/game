@@ -10,6 +10,43 @@ uygulamasına dönüştürülebilir.
 
 ---
 
+## Nasıl test edilir
+
+### 1. Tarayıcıdan (kurulum yok) — GitHub Pages demo
+
+**https://cagdasyildiz1986-gif.github.io/game/**
+
+Telefondan da açılır, "Ana ekrana ekle" ile tam ekran uygulama gibi çalışır.
+Bu sürüm **demo modundadır**: sunucu olmadığı için oyun motoru (`server/game/`
+altındaki aynı modüller) tarayıcıya yüklenir ve bakiye `localStorage`'da tutulur.
+Ekranın üstünde "DEMO" rozeti görünür.
+
+> Pages ilk kez yayınlanırken: repo → **Settings → Pages → Build and deployment →
+> Source: GitHub Actions** seçili olmalı. Workflow bunu kendisi etkinleştirmeye çalışır;
+> etkinleşmezse bu adımı bir kez elle yapmanız yeterlidir. Yayın durumu **Actions**
+> sekmesinden izlenebilir.
+
+### 2. Gerçek mimariyle — GitHub Codespaces
+
+Repo sayfasında **Code → Codespaces → Create codespace** deyin. Devcontainer
+bağımlılıkları kurar, `npm start` ile Node sunucusunu başlatır ve 3000 portunu
+otomatik açar. Bu, üretimdeki gerçek yapıdır: RNG ve tüm matematik sunucuda çalışır.
+
+### 3. Kendi makinenizde
+
+```bash
+npm install && npm start   # http://localhost:3000
+```
+
+| | Demo (Pages) | Sunucu (Codespaces / yerel / native) |
+|---|---|---|
+| RNG ve oyun matematiği | Tarayıcıda | Sunucuda |
+| Bakiye | `localStorage` | Sunucuda, kurcalanamaz |
+| Doğrulanabilir adalet | Yok | Var |
+| Amaç | Hızlı deneme, vitrin | Üretim |
+
+---
+
 ## Öne çıkanlar
 
 | | |
@@ -64,9 +101,13 @@ public/
   js/symbols.js         SVG sembol sprite'ı
   js/audio.js           Web Audio ile sentezlenen ses efektleri
   js/api.js             Sunucu iletişimi
-  js/env.js             API adresi (Capacitor derlemesi için)
+  js/env.js             API adresi ve demo modu bayrağı
+  js/demo.js            Sunucusuz demo arka ucu (GitHub Pages sürümü)
   sw.js                 Service worker (offline kabuk)
 tools/simulate.js       RTP / volatilite simülasyonu
+tools/build-demo.js     GitHub Pages demo derlemesi (dist/)
+.github/workflows/      Pages yayın akışı
+.devcontainer/          Codespaces yapılandırması
 capacitor.config.json   Native uygulama yapılandırması
 ```
 

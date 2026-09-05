@@ -30,7 +30,7 @@ export const JACKPOT = {
   // Her spinde bahsin bu orani havuzlara aktarilir.
   contributionRate: 0.01,
   // Bonus oyununun tetiklenme sansi (spin basina). Test icin JACKPOT_CHANCE ile ezilebilir.
-  triggerChance: Number(process.env.JACKPOT_CHANCE || 0.0022),
+  triggerChance: Number(globalThis.process?.env?.JACKPOT_CHANCE || 0.0022),
   // Havuz seviyeleri: seed = sifirlandiginda baslangic degeri, share = katki payi
   levels: [
     { id: 'CLUB',    name: 'Sinek',  suit: '♣', seed: 100,    share: 0.34, weight: 44 },

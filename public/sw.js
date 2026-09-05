@@ -1,16 +1,19 @@
 /* Basit uygulama-kabugu onbellegi - offline acilis ve hizli yukleme icin. */
 const CACHE = 'lucky-reels-v1';
+// Goreli yollar: uygulama hem kok dizinde (Node sunucusu) hem de
+// alt dizinde (GitHub Pages: /<repo>/) ayni sekilde calisir.
 const SHELL = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/app.js',
-  '/js/api.js',
-  '/js/audio.js',
-  '/js/reels.js',
-  '/js/symbols.js',
-  '/manifest.webmanifest',
-  '/icons/icon.svg'
+  './',
+  './index.html',
+  './css/style.css',
+  './js/app.js',
+  './js/api.js',
+  './js/env.js',
+  './js/audio.js',
+  './js/reels.js',
+  './js/symbols.js',
+  './manifest.webmanifest',
+  './icons/icon.svg'
 ];
 
 self.addEventListener('install', (event) => {

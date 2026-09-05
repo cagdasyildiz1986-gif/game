@@ -13,7 +13,8 @@
     "cap:android": "npx cap open android",
     "cap:ios": "npx cap open ios",
     "cap:add:android": "npx cap add android",
-    "cap:add:ios": "npx cap add ios"
+    "cap:add:ios": "npx cap add ios",
+    "build:demo": "node tools/build-demo.js"
   },
   "engines": {
     "node": ">=18"
