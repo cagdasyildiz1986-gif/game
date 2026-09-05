@@ -1,0 +1,487 @@
+/* ═══════════════════════════════════════════════════════════════
+   YILDIRIM · GÖKLERİN ÖFKESİ
+   Gece-fırtına paleti. 7 HOT'un sıcak altın kabini burada YOK:
+   indigo gökyüzü, patinalı bronz çerçeve, elektrik mavisi vurgular.
+   Animasyon yükü bilerek yüksek: patlama, yerçekimiyle düşme,
+   küre kıvılcımı, şimşek çakması, çarpan toplama.
+   ═══════════════════════════════════════════════════════════════ */
+@import url('style.css');
+
+:root {
+  --st-sky-1: #221252;
+  --st-sky-2: #0e0730;
+  --st-sky-3: #060318;
+  --st-bronze: #d3a15a;
+  --st-bronze-hi: #ffe6b4;
+  --st-bronze-lo: #5c3c14;
+  --st-patina: #3f9c85;
+  --st-bolt: #7ee0ff;
+  --st-bolt-hot: #d8f6ff;
+  --st-violet: #a855f7;
+}
+
+/* ---------- Sayfa: oyun tüm ekranı kaplayan bir fırtına gecesi ---------- */
+body.storm {
+  background:
+    radial-gradient(120% 70% at 50% -10%, #2e1a6e 0%, transparent 60%),
+    radial-gradient(90% 50% at 10% 100%, #1a0d44 0%, transparent 60%),
+    linear-gradient(180deg, #120a2e, #060318 70%);
+  background-attachment: fixed;
+  color: #e8e4ff;
+}
+/* site.css'teki beyaz site başlığı bu sayfada geçerli değil */
+.storm .topbar {
+  background: transparent;
+  border-bottom: 0;
+  box-shadow: none;
+}
+.storm .loader { background: transparent; }
+.storm .loader-note { color: rgba(200, 195, 240, .6); }
+.storm .loader-bar { background: rgba(255, 255, 255, .09); }
+
+/* Üst düğmeler, ölçerler ve yuvarlak düğmeler koyu cam olur */
+.storm .icon-btn,
+.storm .meter,
+.storm .round-btn {
+  background: rgba(255, 255, 255, .06);
+  border-color: rgba(160, 150, 230, .28);
+  color: #d6d0f5;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
+  backdrop-filter: blur(6px);
+}
+.storm .meter-label,
+.storm .winbar-label { color: rgba(200, 195, 240, .55); }
+.storm .meter-value { color: #f2efff; }
+.storm .round-btn:disabled { opacity: .3; }
+.storm .demo-badge {
+  color: #9fe0ff;
+  background: rgba(60, 140, 255, .12);
+  border-color: rgba(120, 200, 255, .3);
+}
+
+/* Temel oyunda üst şeritte oyunun kimliği durur */
+.mode-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 9.5px; font-weight: 800; letter-spacing: 1.8px;
+  color: rgba(190, 210, 255, .7);
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(160, 150, 230, .22);
+  border-radius: 99px;
+  padding: 6px 14px;
+  white-space: nowrap;
+}
+.mode-chip em { font-style: normal; color: var(--st-bolt); }
+
+/* ---------- Marka ---------- */
+.storm-logo {
+  display: flex; align-items: center; gap: 9px;
+  letter-spacing: 0;
+}
+.storm-logo b {
+  font-size: 1em; font-weight: 900; letter-spacing: 3px;
+  background: linear-gradient(180deg, #ffffff, #7ee0ff 45%, #2f7fe0);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 12px rgba(90, 190, 255, .45));
+}
+.storm-logo i {
+  font-style: normal; font-size: .38em; letter-spacing: 2.6px;
+  color: var(--muted); font-weight: 700;
+}
+.logo-bolt {
+  width: .78em; height: .95em; flex: none;
+  background: linear-gradient(180deg, #ffffff, #7ee0ff 50%, #1f6fd0);
+  clip-path: polygon(58% 0, 20% 55%, 45% 55%, 34% 100%, 78% 42%, 52% 42%);
+  filter: drop-shadow(0 0 8px rgba(90, 190, 255, .8));
+  animation: boltFlicker 3.4s ease-in-out infinite;
+}
+@keyframes boltFlicker {
+  0%, 86%, 100% { opacity: 1; }
+  88% { opacity: .35; } 90% { opacity: 1; } 92% { opacity: .5; }
+}
+.loader-logo {
+  background: linear-gradient(180deg, #ffffff, #7ee0ff 45%, #2f7fe0);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* ---------- Üst HUD ---------- */
+.storm-hud {
+  flex: 1;
+  display: flex; justify-content: center; align-items: center; gap: 6px;
+  min-width: 0;
+}
+.hud-item {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 3px 14px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #2a1a5e, #150c34);
+  border: 1.5px solid #4d3aa0;
+  box-shadow: 0 0 18px rgba(90, 60, 220, .3);
+  min-width: 92px;
+}
+.hud-label {
+  font-size: 7.5px; letter-spacing: 1.6px; font-weight: 800;
+  color: rgba(210, 200, 255, .65);
+}
+.hud-value {
+  font-size: 17px; font-weight: 900; line-height: 1.1;
+  color: var(--st-bolt); font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 12px rgba(90, 190, 255, .6);
+}
+.hud-item.charged {
+  border-color: var(--st-bolt);
+  box-shadow: 0 0 26px rgba(90, 200, 255, .55);
+}
+.hud-value.bump { animation: hudBump .45s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes hudBump {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.45); color: #fff; }
+  100% { transform: scale(1); }
+}
+
+/* ---------- Kabin ---------- */
+.storm .frame {
+  padding: 7px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, var(--st-sky-1), var(--st-sky-3)) padding-box,
+    linear-gradient(180deg, var(--st-bronze-hi), var(--st-patina) 45%, var(--st-bronze-lo)) border-box;
+  border: 3px solid transparent;
+  box-shadow:
+    0 18px 44px rgba(6, 3, 24, .55),
+    inset 0 0 60px rgba(0, 0, 0, .6),
+    0 0 34px rgba(70, 50, 180, .3);
+  overflow: hidden;
+}
+
+/* Arka planda ağır ağır sürüklenen bulutlar */
+.sky { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.cloud {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(26px);
+  opacity: .5;
+}
+.cloud.c1 {
+  width: 70%; height: 46%; left: -14%; top: -8%;
+  background: radial-gradient(circle, rgba(120, 80, 220, .8), transparent 70%);
+  animation: drift1 26s ease-in-out infinite alternate;
+}
+.cloud.c2 {
+  width: 62%; height: 42%; right: -12%; top: 22%;
+  background: radial-gradient(circle, rgba(60, 110, 230, .6), transparent 70%);
+  animation: drift2 32s ease-in-out infinite alternate;
+}
+.cloud.c3 {
+  width: 80%; height: 40%; left: 5%; bottom: -14%;
+  background: radial-gradient(circle, rgba(40, 30, 110, .9), transparent 70%);
+  animation: drift1 38s ease-in-out infinite alternate-reverse;
+}
+@keyframes drift1 { to { transform: translate(18%, 8%) scale(1.15); } }
+@keyframes drift2 { to { transform: translate(-16%, -10%) scale(1.1); } }
+
+/* Şimşek katmanı */
+.bolt-layer {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 3;
+}
+.bolt-layer path {
+  fill: none;
+  stroke: var(--st-bolt-hot);
+  stroke-width: .8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 3px var(--st-bolt));
+  animation: boltStrike .45s ease-out forwards;
+}
+@keyframes boltStrike {
+  0% { opacity: 0; stroke-width: 2.2; }
+  10% { opacity: 1; }
+  35% { opacity: .5; }
+  55% { opacity: 1; }
+  100% { opacity: 0; stroke-width: .4; }
+}
+.frame.flash::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(190, 235, 255, .55), transparent 65%);
+  z-index: 4; pointer-events: none;
+  animation: skyFlash .4s ease-out forwards;
+}
+@keyframes skyFlash { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+/* ---------- 6x5 ızgara ---------- */
+.grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(6, var(--cell-w, 52px));
+  gap: 2px;
+  border-radius: 12px;
+}
+.col {
+  position: relative;
+  height: calc(var(--cell-h, 52px) * 5);
+  width: var(--cell-w, 52px);
+}
+.tile {
+  position: absolute;
+  left: 0;
+  width: var(--cell-w, 52px);
+  height: var(--cell-h, 52px);
+  display: grid;
+  place-items: center;
+  will-change: transform, opacity;
+}
+.tile .sym {
+  width: 84%; height: 84%;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .6));
+}
+
+/* Düşüş: yumuşak hızlanma + yere çarpınca hafif ezilme */
+.tile.falling { transition: transform var(--fall, 300ms) cubic-bezier(.4, .06, .3, 1); }
+.tile.landed .sym { animation: tileLand .22s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes tileLand {
+  0% { transform: scaleY(.78) scaleX(1.12); }
+  100% { transform: scaleY(1) scaleX(1); }
+}
+
+/* Kazanan hücre: önce parlar, sonra patlar */
+.tile.win .sym {
+  animation: tileWin .34s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 10px rgba(180, 230, 255, .95)) drop-shadow(0 3px 5px rgba(0, 0, 0, .6));
+}
+@keyframes tileWin { to { transform: scale(1.14); } }
+.tile.win::before {
+  content: '';
+  position: absolute; inset: 8%;
+  border-radius: 12px;
+  background: radial-gradient(circle, rgba(140, 220, 255, .5), transparent 68%);
+  animation: tileWinGlow .34s ease-in-out infinite alternate;
+}
+@keyframes tileWinGlow { to { opacity: .35; transform: scale(1.18); } }
+
+.tile.burst { animation: tileBurst .3s ease-in forwards; pointer-events: none; }
+@keyframes tileBurst {
+  0% { transform: scale(1); opacity: 1; }
+  35% { transform: scale(1.35); opacity: 1; }
+  100% { transform: scale(.2) rotate(18deg); opacity: 0; }
+}
+.tile.burst::after {
+  content: '';
+  position: absolute; inset: -10%;
+  border-radius: 50%;
+  border: 2px solid rgba(190, 235, 255, .9);
+  animation: burstRing .34s ease-out forwards;
+}
+@keyframes burstRing {
+  0% { transform: scale(.35); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* Solma: kazanmayan semboller dizi sırasında geri çekilir */
+.grid.resolving .tile:not(.win):not(.orb) .sym { opacity: .38; filter: grayscale(.55); }
+
+/* ---------- Çarpan küresi ---------- */
+.tile.orb { z-index: 3; }
+.tile.orb .sym {
+  filter: drop-shadow(0 0 12px rgba(110, 200, 255, .9));
+  animation: orbFloat 2.2s ease-in-out infinite alternate;
+}
+@keyframes orbFloat { to { transform: translateY(-5%) scale(1.05); } }
+.orb-value {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(11px, 3.4vw, 16px);
+  font-weight: 900;
+  letter-spacing: -.3px;
+  color: #06203f;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .75);
+  pointer-events: none;
+  z-index: 2;
+}
+.tile.orb.arriving { animation: orbArrive .5s cubic-bezier(.2, 1.5, .4, 1); }
+@keyframes orbArrive {
+  0% { transform: scale(0) rotate(-90deg); opacity: 0; }
+  60% { transform: scale(1.3) rotate(8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); }
+}
+/* Toplanan küre yerinde sönük bir iz bırakır — boş hücre kalmasın */
+.tile.orb.spent { opacity: .2; }
+.tile.orb.spent .sym { animation: none; filter: none; }
+.tile.orb.spent .orb-value { opacity: .5; }
+
+.tile.orb.collecting {
+  transition: transform .5s cubic-bezier(.5, -0.3, .3, 1), opacity .5s ease .25s;
+  opacity: 0;
+  z-index: 6;
+}
+
+/* ---------- Çarpan toplama perdesi ---------- */
+.collector {
+  position: absolute; inset: 0;
+  z-index: 5;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 50%, rgba(10, 6, 32, .78), rgba(6, 3, 24, .92));
+  pointer-events: none;
+}
+.collector-inner { text-align: center; animation: collectorIn .35s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes collectorIn { from { transform: scale(.6); opacity: 0; } }
+.collector-label {
+  display: block;
+  font-size: 10px; letter-spacing: 3px; font-weight: 800;
+  color: rgba(200, 230, 255, .7);
+}
+.collector-value {
+  display: block;
+  font-size: clamp(38px, 13vw, 64px);
+  font-weight: 900;
+  line-height: 1.05;
+  background: linear-gradient(180deg, #ffffff, #7ee0ff 55%, #2f7fe0);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 22px rgba(90, 190, 255, .8));
+  font-variant-numeric: tabular-nums;
+}
+.collector-value.slam { animation: collectorSlam .4s cubic-bezier(.2, 1.7, .3, 1); }
+@keyframes collectorSlam {
+  0% { transform: scale(2.2); opacity: .2; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Ekran sarsıntısı — büyük çarpanlarda */
+.storm.shake .machine { animation: stormShake .38s cubic-bezier(.36, .07, .19, .97); }
+@keyframes stormShake {
+  10%, 90% { transform: translate(-1px, 1px); }
+  20%, 80% { transform: translate(2px, -2px); }
+  30%, 50%, 70% { transform: translate(-4px, 2px); }
+  40%, 60% { transform: translate(4px, -1px); }
+}
+
+/* ---------- Kazanç çubuğu ---------- */
+.storm .winbar {
+  background: linear-gradient(180deg, #1c1244, #120a2e);
+  border-color: #3a2a7a;
+  color: #e6e0ff;
+}
+.storm .winbar-label { color: rgba(200, 190, 255, .6); }
+.storm .winbar-value { color: var(--st-bolt); text-shadow: 0 0 12px rgba(90, 190, 255, .5); }
+.storm .winbar-info { color: rgba(210, 200, 255, .75); }
+
+/* ---------- Kontroller ---------- */
+.storm .spin-btn {
+  background: conic-gradient(from 0deg, #7ee0ff, #2f7fe0, #a855f7, #2f7fe0, #7ee0ff);
+  box-shadow: 0 8px 26px rgba(70, 120, 255, .4);
+}
+.storm .spin-inner {
+  background: radial-gradient(circle at 50% 30%, #2a1a5e, #0e0730 72%);
+}
+.storm .round-btn.active {
+  background: linear-gradient(135deg, #7ee0ff, #2f7fe0);
+  color: #05142c;
+}
+
+/* Bedava dönüş modunda kabin morlaşır ve nabız atar */
+.storm.free-mode .frame {
+  background:
+    linear-gradient(180deg, #3a1466, #140630) padding-box,
+    linear-gradient(180deg, #f0c4ff, #a855f7 45%, #4c1d95) border-box;
+  box-shadow:
+    0 18px 44px rgba(6, 3, 24, .6),
+    inset 0 0 60px rgba(0, 0, 0, .6),
+    0 0 40px rgba(168, 85, 247, .45);
+}
+.storm.free-mode .hud-item { border-color: #b06cff; box-shadow: 0 0 24px rgba(168, 85, 247, .45); }
+
+/* ---------- Bedava dönüş ekranları ---------- */
+.storm-screen { background: rgba(8, 4, 26, .93); }
+.storm-rays {
+  position: absolute; left: 50%; top: 45%;
+  width: 190vmax; height: 190vmax;
+  transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(126, 224, 255, .10) 0deg 6deg,
+    transparent 6deg 21deg
+  );
+  animation: fsRays 26s linear infinite;
+  pointer-events: none;
+}
+.screen-bolts {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+.screen-bolts path {
+  fill: none; stroke: #d8f6ff; stroke-width: .55;
+  stroke-linecap: round; stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px #7ee0ff);
+  animation: boltStrike .5s ease-out forwards;
+}
+.storm-screen .fs-card {
+  animation-delay: .2s;
+  border: 2px solid #6ec8ff;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #1e1150, #0b0526);
+  padding: 20px 24px 24px;
+  margin: 0 18px;
+  max-width: 340px;
+  box-shadow: 0 20px 56px rgba(0, 0, 0, .7), 0 0 50px rgba(90, 170, 255, .32);
+}
+.storm-ribbon {
+  background: linear-gradient(135deg, #7ee0ff, #2f7fe0) !important;
+  color: #05142c !important;
+  box-shadow: 0 4px 18px rgba(60, 150, 255, .5) !important;
+}
+.storm-big {
+  background: linear-gradient(180deg, #ffffff, #7ee0ff 55%, #2f7fe0);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 20px rgba(90, 190, 255, .6));
+}
+.storm-note {
+  font-size: 11.5px; color: rgba(215, 230, 255, .8);
+  margin: -2px 0 10px; line-height: 1.5;
+}
+.storm-note b { color: var(--st-bolt); }
+.storm-cta {
+  background: linear-gradient(135deg, #7ee0ff, #2f7fe0) !important;
+  color: #05142c !important;
+}
+
+/* ---------- Ödeme tablosu ekleri ---------- */
+.st-tier-head {
+  display: grid;
+  grid-template-columns: 1fr repeat(3, 54px);
+  gap: 4px;
+  font-size: 10px; font-weight: 800; letter-spacing: .6px;
+  color: var(--dim);
+  padding: 0 4px 4px;
+}
+.st-tier-head span:not(:first-child) { text-align: right; }
+.st-row {
+  display: grid;
+  grid-template-columns: 1fr repeat(3, 54px);
+  gap: 4px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding: 5px 4px;
+}
+.st-row:last-child { border-bottom: 0; }
+.st-name { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; }
+.st-name svg { width: 34px; height: 34px; flex: none; }
+.st-row b { text-align: right; font-size: 12px; font-variant-numeric: tabular-nums; }
+.st-orbs {
+  display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0 4px;
+}
+.st-orbs span {
+  font-size: 11px; font-weight: 900;
+  border-radius: 99px; padding: 3px 10px;
+  color: #05142c;
+  background: linear-gradient(135deg, #cdf3ff, #4aa8ff);
+  box-shadow: 0 2px 10px rgba(60, 150, 255, .35);
+}
+
+@media (max-width: 380px) {
+  .hud-item { min-width: 78px; padding: 3px 9px; }
+  .st-tier-head, .st-row { grid-template-columns: 1fr repeat(3, 46px); }
+}

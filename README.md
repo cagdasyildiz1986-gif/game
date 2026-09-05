@@ -6,12 +6,15 @@ Android/iOS uygulamasına dönüştürülebilir.
 
 Dört katman vardır:
 
-1. **Site (AURUM)** — lobi, 106 oyunluk katalog, kategoriler, arama, favoriler,
+1. **Site (AURUM)** — lobi, 107 oyunluk katalog, kategoriler, arama, favoriler,
    üyelik, kalıcı bakiye, detaylı profil ve görev/puan sistemi.
-2. **Slotlar** — iki tam oynanabilir motor, ikisi de sunucu taraflı RNG ile:
+2. **Slotlar** — üç tam oynanabilir motor, hepsi sunucu taraflı RNG ile.
+   Her oyunun kendi teması, paleti ve arayüzü vardır:
    - **Lucky Reels** — 5x3, 20 sabit hat; bedava dönüşler ve Jackpot Cards bonusu.
    - **7 HOT · Çan Zinciri** — 5x4, 40 hat; scatter tutmalı respin, "tut ve kazan"
      çan turu ve dört kademeli jackpot merdiveni.
+   - **YILDIRIM · Göklerin Öfkesi** — 6x5, **hat yok** (8+ sembol nerede olursa ödüyor);
+     tumble (patla-düş-doldur) ve çarpan küreleri. Bedava dönüşte çarpan birikir.
 3. **Canlı masalar** — gerçek zamanlı **Texas Hold'em** (oyuncuya karşı, ev oynamaz) ve
    **Blackjack** (krupiye sabit kurallarla oynar). Masa açma, arkadaş daveti, özel masa.
 4. **Yönetim paneli** — kullanıcı yönetimi, bakiye tanımlama, oyun kazanç/kayıp
@@ -64,17 +67,18 @@ npm install && npm start   # http://localhost:3000
 
 | | |
 |---|---|
-| **Site** | 106 oyunluk katalog, 8 kategori, 8 sağlayıcı, arama, favoriler, görevler |
+| **Site** | 107 oyunluk katalog, 8 kategori, 8 sağlayıcı, arama, favoriler, görevler |
 | **Canlı** | Texas Hold'em ve Blackjack, WebSocket, özel masa + davet kodu, bot koltukları |
 | **Yönetim** | Kullanıcı/bakiye yönetimi, RTP ve masa ayarları, bakiye kayıt defteri |
 | **Para birimi** | TL (₺) varsayılan; USD/EUR/Çip seçilebilir — yalnızca gösterim |
-| **Testler** | 72 birim testi + 16 uçtan uca canlı masa testi (`npm test`) |
+| **Testler** | 82 birim testi + 16 uçtan uca canlı masa testi (`npm test`) |
 | **Üyelik** | Kayıt/giriş (scrypt), kalıcı bakiye, misafirden hesaba yükseltme |
 | **Puan** | Satılmaz — yalnızca görevlerle ve oyun kazançlarıyla elde edilir |
 | **Lucky Reels** | 5×3, 20 hat · bedava dönüş (x3, retrigger) · Jackpot Cards · RTP ~%95,8 |
 | **7 HOT** | 5×4, 40 hat · scatter tutmalı respin · Çan Zinciri (tut & kazan) · RTP ~%95,6 |
+| **YILDIRIM** | 6×5, hat yok · tumble · biriken çarpan küreleri · RTP ~%95,4 |
 | **Jackpotlar** | Lucky Reels: 4 progresif havuz · 7 HOT: Mini/Minör/Majör sabit + Grand progresif |
-| **Kapaklar** | 106 oyunun kapağı vektörel üretilir — tek bayt görsel dosyası yok |
+| **Kapaklar** | 107 oyunun kapağı vektörel üretilir — tek bayt görsel dosyası yok |
 | **Güvenlik** | Tüm matematik ve RNG **sunucuda**; istemci sadece sonucu canlandırır |
 | **Adalet** | HMAC-SHA256 tabanlı *provably fair* (sunucu tohumu + istemci tohumu + nonce) |
 | **Arayüz** | Mobil öncelikli, dokunmatik, turbo + otomatik oyun, offline kabuk (PWA) |
@@ -130,8 +134,13 @@ server/
     paylines.js         40 sabit ödeme hattı
     engine.js           Çevirme, hat/scatter değerlendirme, tutmalı respin, çan turu
     session.js          Tur akışı: bakiye, bedava dönüş, jackpot muhasebesi
+  games/yildirim/       YILDIRIM · Göklerin Öfkesi (6x5, hat yok)
+    config.js           Semboller, ödeme tablosu, hücre ağırlıkları, küre merdiveni
+    engine.js           Izgara üretimi, 8+ sayımı, tumble/yerçekimi, küre düşürme
+    session.js          Tur akışı: çarpan kuralı (temel / bedava dönüş), tavan
   routes/game.js        Lucky Reels REST API
   routes/sevenhot.js    7 HOT REST API
+  routes/yildirim.js    YILDIRIM REST API
   store/memory.js       Oyuncu deposu (bellek + JSON dosyası)
 public/
   css/site.css          Tasarım sistemi: açık tema varsayılan, koyu tema
@@ -140,6 +149,7 @@ public/
   index.html            Site (lobi) iskeleti
   game.html             Lucky Reels oyun sayfası
   sevenhot.html         7 HOT · Çan Zinciri oyun sayfası
+  yildirim.html         YILDIRIM · Göklerin Öfkesi oyun sayfası
   live.html             Canlı masa (poker / blackjack)
   admin.html            Yönetim paneli
   css/site.css          Site tasarım sistemi
@@ -155,6 +165,8 @@ public/
   js/sevenhot.js        7 HOT tur canlandırması (respin, çan turu, bedava dönüş)
   js/sevenhot-reels.js  5x4 makara + makara tutma + kilitli çan tahtası
   js/sevenhot-symbols.js  BAR, alevli 7, alevli WILD ve çan ailesi
+  js/yildirim.js        Tumble canlandırması, küre toplama, biriken çarpan
+  js/yildirim-symbols.js  Bronz kabartmalar (boğa, balta, kartal, kurs) + fasetli taşlar
   js/audio.js           Web Audio ile sentezlenen ses efektleri
   js/api.js             Sunucu iletişimi
   js/env.js             API adresi ve demo modu bayrağı
@@ -162,10 +174,12 @@ public/
   sw.js                 Service worker (offline kabuk)
 tools/simulate.js       Lucky Reels RTP / volatilite simülasyonu
 tools/simulate-7hot.js  7 HOT RTP simülasyonu (bileşen bileşen döküm)
+tools/simulate-yildirim.js  YILDIRIM RTP simülasyonu (tumble dağılımı dahil)
 tools/test-hands.js     El değerlendirici testleri
 tools/test-holdem.js    Hold'em motoru testleri (çip korunumu dahil)
 tools/test-blackjack.js Blackjack testleri
 tools/test-sevenhot.js  7 HOT tur değişmezleri (bakiye, çan tahtası, jackpot kuralları)
+tools/test-yildirim.js  YILDIRIM tur değişmezleri (tumble bütünlüğü, çarpan kuralı, tavan)
 tools/build-demo.js     GitHub Pages demo derlemesi (dist/)
 .github/workflows/      Pages yayın akışı
 .devcontainer/          Codespaces yapılandırması
@@ -202,12 +216,13 @@ Hızlı Oyunlar — ayrıca Favoriler.
 sıfırlanır; kilometre taşları (ilk dönüş, kayıt, ilk bonus turu, 1.000 dönüş, jackpot)
 kalıcıdır. Ödüller `Topla` ile bakiyeye eklenir.
 
-**Oyun kapakları:** Katalogda 106 oyun var ve hiçbiri için görsel dosyası yok.
+**Oyun kapakları:** Katalogda 107 oyun var ve hiçbiri için görsel dosyası yok.
 Her oyunun bir **palet** (16 seçenek) ve **motif**i (24 seçenek) vardır;
 `public/js/cover.js` bunlardan arka plan, ışık huzmeleri, motif ve altın konturlu
 başlık kilidi olan bir SVG üretir.
 
-**Not:** Şu an tam olarak oynanabilen oyunlar **Lucky Reels** ve **7 HOT · Çan Zinciri**'dir.
+**Not:** Şu an tam olarak oynanabilen oyunlar **Lucky Reels**, **7 HOT · Çan Zinciri**
+ve **YILDIRIM · Göklerin Öfkesi**'dir.
 Katalogdaki diğer oyunlar site yapısını, kategori akışını ve arama deneyimini göstermek
 için durur; oyun detay sayfasında bu açıkça belirtilir.
 
@@ -349,12 +364,50 @@ havuzdur ve her dönüşün %1,2'sinden beslenir.
 4 milyon dönüşlük ölçüm: hat %46,3 · scatter %5,1 · bedava dönüş %7,4 ·
 Çan Zinciri %36,9 → **toplam %95,6**.
 
+### YILDIRIM · Göklerin Öfkesi (6×5, hat yok)
+
+Hat yoktur: bir sembolden ekranın **herhangi bir yerinde 8 veya daha fazla** varsa öder.
+Kazananlar patlar, üsttekiler düşer, boşluklar dolar — kazanç kalmayana kadar (**tumble**).
+
+**Ödeme tablosu** (toplam bahis çarpanı):
+
+| Sembol | 8-9 | 10-11 | 12+ |
+|---|---|---|---|
+| 🐂 Boğa | 4 | 12 | 30 |
+| 🪓 Çift Balta | 1,6 | 5 | 15 |
+| 🦅 Çift Başlı Kartal | 1 | 3 | 9 |
+| ☀️ Güneş Kursu | 0,7 | 1,8 | 6 |
+| 🔴 Kor Taşı | 0,46 | 1,25 | 4,2 |
+| 🟣 Mor Taş | 0,35 | 0,9 | 3 |
+| 🟡 Kehribar | 0,26 | 0,62 | 2,3 |
+| 🟢 Zümrüt | 0,19 | 0,47 | 1,7 |
+| 🔵 Gök Taşı | 0,13 | 0,31 | 1,15 |
+
+**Çarpan küreleri** — x2'den x500'e kadar değer taşır. Ödeme yapmaz, kazançla patlamaz,
+yerçekimiyle düşer.
+
+- **Temel oyun:** tumble dizisi bittiğinde ekrandaki tüm kürelerin değeri toplanır ve
+  o dizinin kazancını çarpar, sonra sıfırlanır.
+- **Bedava dönüş:** toplam, tur boyunca yaşayan **kalıcı çarpana** eklenir ve bundan
+  sonraki her kazancı çarpar. Kazançsız dönüşte düşen küreler de eklenir — oyunun
+  en büyük kazançları buradan çıkar.
+
+**Scatter (⚡ Yıldırım)** — 4× → 2, 5× → 10, 6× → 50 toplam bahis. 4 scatter 12,
+5 scatter 18, 6 scatter 25 bedava dönüş verir. Scatter'lar tumble boyunca ekranda
+kalıp birikir; bedava dönüşte 3+ scatter +5 dönüş ekler.
+
+Tur başına en yüksek ödeme toplam bahsin **5.000 katıdır**.
+
+1 milyon dönüşlük ölçüm: temel oyun %54,7 · bedava dönüş %40,7 → **toplam %95,4**.
+Bedava dönüş 1/250 dönüş, kazanma sıklığı %46, ortalama 0,79 tumble.
+
 ### Testler
 
 ```bash
-npm test              # 72 birim testi (el değerlendirici, Hold'em, Blackjack, 7 HOT)
-npm run simulate      # Lucky Reels RTP / volatilite simülasyonu
-npm run simulate:7hot # 7 HOT RTP simülasyonu
+npm test                # 82 birim testi (el değerlendirici, Hold'em, Blackjack, 7 HOT, YILDIRIM)
+npm run simulate        # Lucky Reels RTP / volatilite simülasyonu
+npm run simulate:7hot   # 7 HOT RTP simülasyonu
+npm run simulate:storm  # YILDIRIM RTP simülasyonu
 ```
 
 Hold'em testleri arasında **~15.000 rastgele elde çip korunumu** kontrolü vardır;
@@ -364,6 +417,10 @@ bu test, yan potlarda çip kaybına yol açan gerçek bir hatayı yakaladı
 7 HOT testi 300.000 turu oynatıp her turda bakiye muhasebesini, çan tahtasının
 kapasitesini, Grand'ın üç-çan kuralını ve tam ekran çarpanının Majör/Grand'a
 uygulanmadığını doğrular.
+
+YILDIRIM testi 200.000 turda tumble bütünlüğünü (ödeyen her sembolün ızgarada
+gerçekten o adette bulunması, dizinin kazançsız bitmesi, kürelerin ödeme sembolü
+sayılmaması), iki ayrı çarpan kuralını ve kazanç tavanını doğrular.
 
 ### RTP'yi ölçme ve ayarlama
 
@@ -435,6 +492,10 @@ Tüm istekler `Authorization: Bearer <token>` başlığı ister (`/config`, `/se
 | `POST` | `/api/sevenhot/bet` | 7 HOT bahis seviyesi değiştir |
 | `POST` | `/api/sevenhot/spin` | 7 HOT turu → temel çevirme + respin adımları + çan turu |
 | `GET` | `/api/sevenhot/jackpots` | 7 HOT jackpot merdiveni (bahse göre) |
+| `GET` | `/api/yildirim/config` | YILDIRIM: semboller, ödeme tablosu, küre merdiveni, kurallar |
+| `GET` | `/api/yildirim/state` | YILDIRIM: bahis, kalan bedava dönüş, kalıcı çarpan |
+| `POST` | `/api/yildirim/bet` | YILDIRIM bahis seviyesi değiştir |
+| `POST` | `/api/yildirim/spin` | YILDIRIM turu → ilk ızgara + tüm tumble adımları + çarpan |
 | `POST` | `/api/fair/client-seed` | İstemci tohumunu değiştir |
 | `POST` | `/api/fair/rotate` | Sunucu tohumunu açıkla ve yenile |
 
@@ -442,9 +503,9 @@ Tüm istekler `Authorization: Bearer <token>` başlığı ister (`/config`, `/se
 RNG, ödeme hesabı ve jackpot havuzları tamamen sunucudadır; istemciye yalnızca
 sonuç gönderilir. Böylece tarayıcı konsolundan bakiye veya sonuç değiştirilemez.
 
-7 HOT'ta bir tur (temel çevirme → tutmalı respin → Çan Zinciri) **tek istekte**
-baştan sona sunucuda çözülür ve istemciye adım adım canlandırılacak bir betimleme
-döner. Ara durum istemcide tutulmadığı için kurcalanacak bir şey kalmaz ve
+7 HOT ve YILDIRIM'da bir tur **tek istekte** baştan sona sunucuda çözülür ve
+istemciye adım adım canlandırılacak bir betimleme döner (7 HOT: çevirme → tutmalı
+respin → Çan Zinciri; YILDIRIM: ilk ızgara → tumble adımları → çarpan hesabı). Ara durum istemcide tutulmadığı için kurcalanacak bir şey kalmaz ve
 bağlantı koparsa bakiye tutarlı kalır.
 
 ### Doğrulanabilir adalet

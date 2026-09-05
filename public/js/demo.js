@@ -29,6 +29,9 @@ import {
   createPools as hotCreatePools
 } from '../engine/games/sevenhot/session.js';
 import * as HOT from '../engine/games/sevenhot/config.js';
+import { playRound as stormPlayRound, ensureState as stormEnsureState }
+  from '../engine/games/yildirim/session.js';
+import * as STORM from '../engine/games/yildirim/config.js';
 import { PAYLINES as HOT_PAYLINES } from '../engine/games/sevenhot/paylines.js';
 
 const STORAGE_KEY = 'lucky-reels-demo-state';
@@ -323,6 +326,71 @@ export const demoApi = {
         round: { ...round, nonce: state.player.stats.spins },
         player: publicPlayer(),
         jackpots: hotJackpotView(round.bet)
+      };
+    }
+  },
+
+  /* ---- YILDIRIM · Göklerin Öfkesi ---- */
+  storm: {
+    async config() {
+      return {
+        name: 'YILDIRIM · Göklerin Öfkesi',
+        currency: { code: 'TRY', symbol: '₺', name: 'Türk Lirası', locale: 'tr-TR' },
+        rtp: 95.4,
+        reels: STORM.REELS,
+        rows: STORM.ROWS,
+        minCluster: STORM.MIN_CLUSTER,
+        tiers: STORM.TIERS,
+        symbols: STORM.SYMBOLS,
+        paySymbols: STORM.PAY_SYMBOLS,
+        scatter: STORM.SCATTER,
+        mult: STORM.MULT,
+        paytable: STORM.PAYTABLE,
+        scatterPay: STORM.SCATTER_PAY,
+        freeSpins: STORM.FREE_SPINS,
+        retrigger: STORM.RETRIGGER,
+        orbValues: STORM.ORB_VALUES.map((o) => o.value),
+        orbChance: STORM.ORB_CHANCE,
+        betLevels: STORM.BET_LEVELS,
+        defaultBet: STORM.DEFAULT_BET,
+        maxWin: STORM.MAX_WIN
+      };
+    },
+    async state() {
+      const st = stormEnsureState(state.player);
+      persist();
+      return {
+        state: { bet: st.bet, free: { ...st.free, win: round2(st.free.win) } },
+        player: publicPlayer()
+      };
+    },
+    async setBet(bet) {
+      const st = stormEnsureState(state.player);
+      if (!STORM.BET_LEVELS.includes(bet)) throw new Error('Geçersiz bahis seviyesi.');
+      if (st.free.remaining > 0) {
+        throw new Error('Bedava dönüşler sırasında bahis değiştirilemez.');
+      }
+      st.bet = bet;
+      persist();
+      return { state: { bet: st.bet, free: st.free } };
+    },
+    async spin(bet) {
+      const { error, round } = stormPlayRound({ player: state.player, rng, bet });
+      if (error) throw new Error(error);
+      state.player.xp = (state.player.xp || 0) + Math.max(1, Math.round(round.bet / 10));
+      applySpinToTasks(state.player.tasks, {
+        spin: {
+          totalWin: round.totalWin,
+          freeSpinsAwarded: round.freeSpinsAwarded,
+          jackpot: null
+        },
+        bet: round.bet,
+        totalSpins: state.player.stats.spins
+      });
+      persist();
+      return {
+        round: { ...round, nonce: state.player.stats.spins },
+        player: publicPlayer()
       };
     }
   },
