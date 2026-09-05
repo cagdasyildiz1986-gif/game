@@ -6,7 +6,7 @@
  * gradyan (hacim), ust-sol spekuler parlama (isik yonu tutarli), alt ic golge.
  */
 
-const GRADIENTS = `
+export const GRADIENTS = `
 <linearGradient id="g-gold" x1="0" y1="0" x2="0.3" y2="1">
   <stop offset="0%" stop-color="#fff8d2"/><stop offset="28%" stop-color="#ffdc6a"/>
   <stop offset="58%" stop-color="#e8a916"/><stop offset="100%" stop-color="#8a5a05"/>
@@ -68,9 +68,9 @@ const GRADIENTS = `
 `;
 
 /** Ortak koyu kontur - koyu zeminde siluet netligi saglar. */
-const OUTLINE = 'stroke="#2b0f00" stroke-width="2.5" stroke-linejoin="round"';
+export const OUTLINE = 'stroke="#2b0f00" stroke-width="2.5" stroke-linejoin="round"';
 
-const SHAPES = {
+export const SHAPES = {
   CHERRY: `
     <path d="M50 20c-8 11-20 18-27 25" ${OUTLINE} stroke-width="5" fill="none" stroke-linecap="round"/>
     <path d="M50 20c5 12 13 20 21 26" ${OUTLINE} stroke-width="5" fill="none" stroke-linecap="round"/>
