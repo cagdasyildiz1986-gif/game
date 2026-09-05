@@ -109,19 +109,29 @@ function badge(text, size = 15) {
 const EXTRA_SHAPES = {
   /** Klasik üç katlı BAR plakası. */
   BAR: `
+    <ellipse cx="50" cy="88" rx="36" ry="6.5" fill="#000" opacity=".38"/>
     <g ${OUTLINE}>
-      <rect x="14" y="20" width="72" height="18" rx="6" fill="url(#h-bar)"/>
-      <rect x="14" y="42" width="72" height="18" rx="6" fill="url(#h-bar)"/>
-      <rect x="14" y="64" width="72" height="18" rx="6" fill="url(#h-bar)"/>
+      <rect x="14" y="19" width="72" height="19" rx="6" fill="url(#h-bar)"/>
+      <rect x="14" y="41" width="72" height="19" rx="6" fill="url(#h-bar)"/>
+      <rect x="14" y="63" width="72" height="19" rx="6" fill="url(#h-bar)"/>
     </g>
-    <g font-family="'Arial Black', Impact, system-ui, sans-serif" font-size="13"
-       font-weight="900" text-anchor="middle" fill="#5c3a02" letter-spacing="1.5">
-      <text x="50" y="34">BAR</text><text x="50" y="56">BAR</text><text x="50" y="78">BAR</text>
+    <!-- Alt kenar ışığı: plakalara kalınlık hissi verir -->
+    <g fill="#fff3c4" opacity=".45">
+      <rect x="17" y="34" width="66" height="2.4" rx="1.2"/>
+      <rect x="17" y="56" width="66" height="2.4" rx="1.2"/>
+      <rect x="17" y="78" width="66" height="2.4" rx="1.2"/>
     </g>
-    <g fill="#ffffff" opacity=".35">
-      <rect x="18" y="23" width="64" height="4" rx="2"/>
-      <rect x="18" y="45" width="64" height="4" rx="2"/>
-      <rect x="18" y="67" width="64" height="4" rx="2"/>
+    <g font-family="'Arial Black', Impact, system-ui, sans-serif" font-size="13.5"
+       font-weight="900" text-anchor="middle" letter-spacing="1.6">
+      <g fill="#4a2d01">
+        <text x="50" y="33.5">BAR</text><text x="50" y="55.5">BAR</text><text x="50" y="77.5">BAR</text>
+      </g>
+    </g>
+    <!-- Üstten gelen sert parlama -->
+    <g fill="#ffffff">
+      <rect x="18" y="21.5" width="64" height="4.5" rx="2.2" opacity=".62"/>
+      <rect x="18" y="43.5" width="64" height="4.5" rx="2.2" opacity=".52"/>
+      <rect x="18" y="65.5" width="64" height="4.5" rx="2.2" opacity=".42"/>
     </g>`,
 
   /** Alevli 7 — oyunun ana yüksek sembolü. */

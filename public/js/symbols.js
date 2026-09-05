@@ -53,6 +53,20 @@ export const GRADIENTS = `
 <linearGradient id="g-stem" x1="0" y1="0" x2="1" y2="1">
   <stop offset="0%" stop-color="#6ab84a"/><stop offset="100%" stop-color="#2c6b1e"/>
 </linearGradient>
+<radialGradient id="g-gloss" cx="0.5" cy="0.5" r="0.5">
+  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.98"/>
+  <stop offset="45%" stop-color="#ffffff" stop-opacity="0.55"/>
+  <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="g-drop" cx="0.5" cy="0.5" r="0.5">
+  <stop offset="0%" stop-color="#000000" stop-opacity="0.6"/>
+  <stop offset="70%" stop-color="#000000" stop-opacity="0.22"/>
+  <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="g-rim" x1="0" y1="1" x2="0.4" y2="0">
+  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.5"/>
+  <stop offset="45%" stop-color="#ffffff" stop-opacity="0"/>
+</linearGradient>
 <radialGradient id="g-hi" cx="0.5" cy="0.5" r="0.5">
   <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
   <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
@@ -78,12 +92,18 @@ export const SHAPES = {
     <path d="M50 20c5 12 13 20 21 26" stroke="url(#g-stem)" stroke-width="3.4" fill="none" stroke-linecap="round"/>
     <path d="M50 20c9-10 23-11 30-5-7 10-20 12-30 5z" fill="url(#g-leaf)" ${OUTLINE}/>
     <path d="M53 18c8-3 16-3 22 0" stroke="#1a6b22" stroke-width="1.6" fill="none" opacity=".7"/>
+    <ellipse cx="50" cy="90" rx="34" ry="8" fill="url(#g-drop)"/>
     <circle cx="32" cy="68" r="18" fill="url(#g-cherry)" ${OUTLINE}/>
     <circle cx="71" cy="71" r="15" fill="url(#g-cherry)" ${OUTLINE}/>
-    <ellipse cx="25" cy="60" rx="6" ry="4.5" fill="url(#g-hi)" transform="rotate(-32 25 60)"/>
-    <ellipse cx="65" cy="65" rx="5" ry="3.6" fill="url(#g-hi)" transform="rotate(-32 65 65)"/>`,
+    <circle cx="32" cy="68" r="18" fill="url(#g-rim)"/>
+    <circle cx="71" cy="71" r="15" fill="url(#g-rim)"/>
+    <ellipse cx="25" cy="59" rx="8.5" ry="6" fill="url(#g-gloss)" transform="rotate(-34 25 59)"/>
+    <ellipse cx="65" cy="64" rx="6.5" ry="4.6" fill="url(#g-gloss)" transform="rotate(-34 65 64)"/>
+    <ellipse cx="22.5" cy="57" rx="3.4" ry="2" fill="#ffffff" opacity=".95" transform="rotate(-34 22.5 57)"/>
+    <ellipse cx="63" cy="62.5" rx="2.6" ry="1.6" fill="#ffffff" opacity=".9" transform="rotate(-34 63 62.5)"/>`,
 
   LEMON: `
+    <ellipse cx="50" cy="88" rx="32" ry="7.5" fill="url(#g-drop)"/>
     <g transform="rotate(-20 50 54)">
       <ellipse cx="50" cy="54" rx="35" ry="25" fill="url(#g-lemon)" ${OUTLINE}/>
       <path d="M85 54c3 0 5-1 6-3-2-3-4-4-6-4z" fill="url(#g-lemon)" ${OUTLINE} stroke-width="2"/>
@@ -93,26 +113,34 @@ export const SHAPES = {
         <circle cx="58" cy="45" r="1.5"/><circle cx="40" cy="60" r="1.5"/>
         <circle cx="54" cy="63" r="1.5"/><circle cx="66" cy="55" r="1.5"/>
       </g>
-      <ellipse cx="36" cy="42" rx="13" ry="6" fill="url(#g-hi)" transform="rotate(-18 36 42)"/>
+      <ellipse cx="50" cy="54" rx="35" ry="25" fill="url(#g-rim)"/>
+      <ellipse cx="35" cy="41" rx="15" ry="7.5" fill="url(#g-gloss)" transform="rotate(-18 35 41)"/>
+      <ellipse cx="31" cy="39" rx="7" ry="3" fill="#ffffff" opacity=".95" transform="rotate(-18 31 39)"/>
     </g>
     <path d="M74 27c7-6 15-7 20-4-5 8-14 10-20 4z" fill="url(#g-leaf)" ${OUTLINE} stroke-width="2"/>`,
 
   ORANGE: `
+    <ellipse cx="50" cy="90" rx="30" ry="7" fill="url(#g-drop)"/>
     <circle cx="50" cy="57" r="31" fill="url(#g-orange)" ${OUTLINE}/>
+    <circle cx="50" cy="57" r="31" fill="url(#g-rim)"/>
     <g fill="#a34a00" opacity=".28">
       <circle cx="38" cy="48" r="1.7"/><circle cx="52" cy="44" r="1.7"/><circle cx="63" cy="52" r="1.7"/>
       <circle cx="36" cy="64" r="1.7"/><circle cx="50" cy="70" r="1.7"/><circle cx="64" cy="66" r="1.7"/>
       <circle cx="46" cy="57" r="1.7"/>
     </g>
-    <ellipse cx="39" cy="43" rx="12" ry="7" fill="url(#g-hi)" transform="rotate(-28 39 43)"/>
+    <ellipse cx="38" cy="42" rx="14" ry="8.5" fill="url(#g-gloss)" transform="rotate(-28 38 42)"/>
+    <ellipse cx="34" cy="39" rx="6" ry="3" fill="#ffffff" opacity=".95" transform="rotate(-28 34 39)"/>
     <path d="M50 27c-1-6 1-10 5-11 1 6-1 10-5 11z" fill="url(#g-stem)" ${OUTLINE} stroke-width="2"/>
     <path d="M51 26c6-8 16-10 23-7-5 9-15 12-23 7z" fill="url(#g-leaf)" ${OUTLINE} stroke-width="2"/>
     <path d="M55 24c6-3 12-4 17-3" stroke="#14591b" stroke-width="1.5" fill="none" opacity=".6"/>`,
 
   PLUM: `
+    <ellipse cx="50" cy="90" rx="29" ry="7" fill="url(#g-drop)"/>
     <ellipse cx="50" cy="58" rx="30" ry="32" fill="url(#g-plum)" ${OUTLINE}/>
+    <ellipse cx="50" cy="58" rx="30" ry="32" fill="url(#g-rim)"/>
     <path d="M50 26c-4 13-5 26-2 38" stroke="#2a0b47" stroke-width="3" fill="none" opacity=".55" stroke-linecap="round"/>
-    <ellipse cx="37" cy="43" rx="11" ry="7" fill="url(#g-hi)" transform="rotate(-32 37 43)"/>
+    <ellipse cx="36" cy="42" rx="13" ry="8" fill="url(#g-gloss)" transform="rotate(-32 36 42)"/>
+    <ellipse cx="32.5" cy="39" rx="5.5" ry="2.8" fill="#ffffff" opacity=".9" transform="rotate(-32 32.5 39)"/>
     <path d="M52 27c7-10 18-13 25-10-5 11-16 15-25 10z" fill="url(#g-leaf)" ${OUTLINE} stroke-width="2"/>
     <path d="M57 24c6-4 12-5 17-4" stroke="#14591b" stroke-width="1.5" fill="none" opacity=".6"/>`,
 
@@ -131,19 +159,29 @@ export const SHAPES = {
     <path d="M50 18v12" ${OUTLINE} stroke-width="6.5" fill="none" stroke-linecap="round" opacity=".35"/>
     <path d="M50 19c9-10 21-11 28-6-7 10-19 12-28 6z" fill="url(#g-leaf)" ${OUTLINE} stroke-width="2"/>
     <path d="M55 16c7-3 14-4 20-2" stroke="#14591b" stroke-width="1.5" fill="none" opacity=".6"/>
+    <ellipse cx="50" cy="90" rx="31" ry="7" fill="url(#g-drop)"/>
     <g fill="url(#g-grape)" ${OUTLINE} stroke-width="2">
       <circle cx="38" cy="41" r="11.5"/><circle cx="62" cy="41" r="11.5"/>
       <circle cx="27" cy="59" r="11.5"/><circle cx="50" cy="58" r="11.5"/><circle cx="73" cy="59" r="11.5"/>
       <circle cx="38" cy="76" r="11.5"/><circle cx="62" cy="76" r="11.5"/>
     </g>
-    <g fill="url(#g-hi)">
-      <ellipse cx="34" cy="37" rx="4.5" ry="3.2" transform="rotate(-30 34 37)"/>
-      <ellipse cx="46" cy="54" rx="4.5" ry="3.2" transform="rotate(-30 46 54)"/>
-      <ellipse cx="34" cy="72" rx="4.5" ry="3.2" transform="rotate(-30 34 72)"/>
-      <ellipse cx="58" cy="37" rx="4" ry="2.8" transform="rotate(-30 58 37)"/>
+    <g fill="url(#g-gloss)">
+      <ellipse cx="34" cy="36.5" rx="5.6" ry="4" transform="rotate(-30 34 36.5)"/>
+      <ellipse cx="58" cy="36.5" rx="5.6" ry="4" transform="rotate(-30 58 36.5)"/>
+      <ellipse cx="23" cy="54.5" rx="5.6" ry="4" transform="rotate(-30 23 54.5)"/>
+      <ellipse cx="46" cy="53.5" rx="5.6" ry="4" transform="rotate(-30 46 53.5)"/>
+      <ellipse cx="69" cy="54.5" rx="5.6" ry="4" transform="rotate(-30 69 54.5)"/>
+      <ellipse cx="34" cy="71.5" rx="5.6" ry="4" transform="rotate(-30 34 71.5)"/>
+      <ellipse cx="58" cy="71.5" rx="5.6" ry="4" transform="rotate(-30 58 71.5)"/>
+    </g>
+    <g fill="#ffffff" opacity=".92">
+      <ellipse cx="32.5" cy="35" rx="2.4" ry="1.5" transform="rotate(-30 32.5 35)"/>
+      <ellipse cx="56.5" cy="35" rx="2.4" ry="1.5" transform="rotate(-30 56.5 35)"/>
+      <ellipse cx="44.5" cy="52" rx="2.4" ry="1.5" transform="rotate(-30 44.5 52)"/>
     </g>`,
 
   MELON: `
+    <ellipse cx="50" cy="76" rx="40" ry="7" fill="url(#g-drop)"/>
     <path d="M11 70a39 39 0 0 1 78 0z" fill="url(#g-rind)" ${OUTLINE}/>
     <path d="M18 70a32 32 0 0 1 64 0z" fill="#f6fbe9" stroke="#1c6b22" stroke-width="1.5"/>
     <path d="M22 70a28 28 0 0 1 56 0z" fill="url(#g-flesh)" stroke="#8c0d13" stroke-width="1.5"/>
@@ -154,7 +192,10 @@ export const SHAPES = {
       <ellipse cx="30" cy="65" rx="3" ry="4.6" transform="rotate(-22 30 65)"/>
       <ellipse cx="70" cy="65" rx="3" ry="4.6" transform="rotate(22 70 65)"/>
     </g>
-    <path d="M28 62a24 24 0 0 1 12-14" stroke="#ff9a92" stroke-width="3" fill="none" opacity=".55" stroke-linecap="round"/>
+    <path d="M27 63a26 26 0 0 1 14-16" stroke="#ffc7c1" stroke-width="4" fill="none"
+      opacity=".75" stroke-linecap="round"/>
+    <path d="M30 66a22 22 0 0 1 9-11" stroke="#ffffff" stroke-width="2" fill="none"
+      opacity=".7" stroke-linecap="round"/>
     <path d="M13 70h74" stroke="#2b0f00" stroke-width="2.5" stroke-linecap="round"/>`,
 
   SEVEN: `

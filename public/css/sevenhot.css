@@ -155,53 +155,65 @@ body.hot {
 
 /* ---------- Makaradaki çanların üstündeki tutar ---------- */
 .cell.reel-bell { position: relative; }
+/* Çan hücresi ince altın çerçeveyle ayrılır — çerçeve ÇANIN ARKASINDA durur */
+.cell.reel-bell::before {
+  content: '';
+  position: absolute; inset: 3px;
+  border-radius: 7px;
+  border: 1.5px solid rgba(255, 208, 110, .5);
+  background: radial-gradient(circle at 50% 38%, rgba(255, 190, 80, .16), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.cell.reel-bell .sym { position: relative; z-index: 1; }
+/* Tutar plakası çanın alt kenarına oturur; çanı örtmez ve
+   makara dönerken de oradadır (sonradan eklenmez). */
 .cell.reel-bell .bell-tag {
   position: absolute;
-  left: 50%; bottom: 3px;
+  left: 50%; bottom: 6%;
   transform: translateX(-50%);
-  font-size: clamp(8px, 2.5vw, 11px);
+  font-size: clamp(8.5px, 2.7vw, 12px);
   font-weight: 900;
-  color: #fff6d8;
-  text-shadow: 0 1px 0 #000, 0 0 6px rgba(0, 0, 0, .95);
-  background: linear-gradient(180deg, rgba(90, 60, 10, .85), rgba(20, 12, 2, .9));
-  border: 1px solid rgba(255, 208, 110, .5);
-  border-radius: 99px;
-  padding: 0 7px;
+  letter-spacing: -.2px;
+  line-height: 1.35;
+  color: #ffffff;
+  text-shadow: 0 1px 0 #000, 0 2px 4px rgba(0, 0, 0, .95);
+  background: linear-gradient(180deg, rgba(64, 40, 5, .95), rgba(20, 12, 1, .97));
+  border: 1.4px solid rgba(255, 214, 120, .85);
+  border-radius: 5px;
+  padding: 0 6px;
   white-space: nowrap;
-  z-index: 3;
+  z-index: 2;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .7);
+}
+
+/* ---------- Kazanç açıklaması (makaranın alt kenarında) ---------- */
+.win-info-strip {
+  position: absolute;
+  left: 50%; bottom: 10px;
+  transform: translateX(-50%);
+  z-index: 6;
+  max-width: 92%;
+  padding: 3px 14px;
+  border-radius: 99px;
+  font-size: 11px; font-weight: 700; letter-spacing: .3px;
+  color: #fff4d6;
+  background: rgba(8, 12, 34, .82);
+  border: 1px solid rgba(255, 208, 110, .45);
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   pointer-events: none;
 }
+.win-info-strip:empty { display: none; }
 
-/* ---------- Kazanç bandı ---------- */
-.hot .winbar {
-  margin: 8px auto 0;
-  width: fit-content;
-  max-width: 100%;
-  padding: 5px 24px;
-  border-radius: 12px;
-  background: linear-gradient(180deg, #101a42, #070d26);
-  border: 2px solid transparent;
-  background-clip: padding-box;
-  box-shadow: 0 0 0 2px var(--g-2), 0 6px 18px rgba(0, 0, 0, .55),
-              inset 0 1px 0 rgba(255, 255, 255, .1);
-  min-height: 32px;
-}
-.hot .winbar-label {
-  font-size: 10px; letter-spacing: 2.4px; font-weight: 800;
-  color: rgba(230, 226, 255, .68);
-}
-.hot .winbar-value {
-  font-size: clamp(18px, 5.4vw, 25px); font-weight: 900;
-  background: linear-gradient(180deg, var(--g-hi), var(--g-2));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  font-variant-numeric: tabular-nums;
-  filter: drop-shadow(0 0 8px rgba(255, 180, 50, .5));
-}
-.hot .winbar-info { font-size: 11px; font-weight: 700; color: rgba(226, 222, 255, .8); }
-
-/* ---------- Ölçerler ---------- */
+/* ---------- Ölçerler: BAKİYE · KAZANÇ · BAHİS tek sırada ---------- */
 .hot .controls { gap: 8px; padding-bottom: 12px; }
+.hot .meters { grid-template-columns: 1fr 1.05fr 1fr; gap: 6px; }
 .hot .meter {
+  flex-direction: column; align-items: center; gap: 0;
   padding: 5px 14px 6px;
   border-radius: 13px;
   background: var(--panel);
@@ -210,13 +222,26 @@ body.hot {
   box-shadow: 0 4px 14px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .1);
 }
 .hot .meter-label {
-  font-size: 9px; letter-spacing: 2px; font-weight: 800;
-  color: rgba(226, 222, 255, .58);
+  font-size: 8.5px; letter-spacing: 1.6px; font-weight: 800;
+  color: rgba(226, 222, 255, .55);
 }
 .hot .meter-value {
-  font-size: clamp(15px, 4.4vw, 19px); font-weight: 900;
+  font-size: clamp(13px, 3.9vw, 18px); font-weight: 900;
   color: var(--g-1);
+  font-variant-numeric: tabular-nums;
   text-shadow: 0 0 10px rgba(255, 190, 60, .35);
+  white-space: nowrap;
+}
+/* Ortadaki kazanç panosu altın çerçeveyle öne çıkar */
+.hot .meter-win {
+  border-color: var(--g-2);
+  box-shadow: 0 0 0 1px rgba(255, 208, 110, .35), 0 4px 16px rgba(0, 0, 0, .55),
+              inset 0 1px 0 rgba(255, 255, 255, .12);
+}
+.hot .meter-win .meter-value {
+  background: linear-gradient(180deg, var(--g-hi), var(--g-2));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 8px rgba(255, 180, 50, .45));
 }
 
 /* ---------- Alt düğme sırası ---------- */

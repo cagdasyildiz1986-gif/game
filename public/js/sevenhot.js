@@ -224,8 +224,12 @@ async function playScatterRespins(respin) {
     reels.markHeld(step.held);
     sfx.anticipation(600);
     await sleep(pace(650));
-    await reels.spinTo(step.grid, { turbo: state.turbo, held: step.held });
-    reels.decorateBells(step.bells, bellLabel);
+    await reels.spinTo(step.grid, {
+      turbo: state.turbo,
+      held: step.held,
+      bells: step.bells,
+      bellLabel
+    });
     if (step.gained > 0) {
       sfx.win(2);
       floatWin(0);
@@ -455,8 +459,11 @@ async function doSpin() {
   renderJackpots(jackpots);
 
   // 1) Temel çevirme
-  await reels.spinTo(round.grid, { turbo: state.turbo });
-  reels.decorateBells(round.baseBells, bellLabel);
+  await reels.spinTo(round.grid, {
+    turbo: state.turbo,
+    bells: round.baseBells,
+    bellLabel
+  });
   // Yeni kazanılan bedava dönüşler sayaca HEMEN yazılmaz: giriş ekranı
   // gösterilmeden sayacın belirmesi sürprizi bozuyordu.
   const deferFreeCount = round.freeSpinsAwarded > 0 && !round.free;

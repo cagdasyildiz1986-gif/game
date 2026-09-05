@@ -19,8 +19,28 @@ export const ROWS = 4;
 const FILLERS = ['CHERRY', 'LEMON', 'PLUM', 'ORANGE', 'GRAPE', 'MELON', 'BAR', 'SEVEN'];
 const randomFiller = () => FILLERS[Math.floor(Math.random() * FILLERS.length)];
 
-function cellHtml(symbolId) {
+/**
+ * Bir hücrenin işaretlemesi.
+ *
+ * Çan hücreleri taşıdıkları tutarla BİRLİKTE üretilir — makara dururken
+ * sonradan eklenmez; oyuncu çanı gördüğü anda değerini de görür.
+ */
+function cellHtml(symbolId, bell = null, label = null) {
+  if (symbolId === 'BELL' && bell) {
+    const text = label ? label(bell) : '';
+    return `<div class="cell bell-cell reel-bell" data-symbol="BELL" data-bell="${bell.id}">
+      ${symbolMarkup(bellSprite(bell))}
+      ${text ? `<span class="bell-tag">${text}</span>` : ''}
+    </div>`;
+  }
   return `<div class="cell" data-symbol="${symbolId}">${symbolMarkup(symbolId)}</div>`;
+}
+
+/** [reel,row] -> çan kaydı sözlüğü. */
+function bellMap(cells = []) {
+  const map = new Map();
+  for (const cell of cells) map.set(`${cell.reel}:${cell.row}`, cell);
+  return map;
 }
 
 export class HotReels {
@@ -47,11 +67,14 @@ export class HotReels {
     this.setGrid(this.grid);
   }
 
-  setGrid(grid) {
+  setGrid(grid, bells = [], bellLabel = null) {
     this.grid = grid;
+    const bellAt = bellMap(bells);
     this.stripEls.forEach((strip, r) => {
       strip.style.transform = 'translateY(0)';
-      strip.innerHTML = grid[r].map(cellHtml).join('');
+      strip.innerHTML = grid[r]
+        .map((sym, row) => cellHtml(sym, bellAt.get(`${r}:${row}`), bellLabel))
+        .join('');
     });
   }
 
@@ -96,7 +119,7 @@ export class HotReels {
    * @param {string[][]} grid
    * @param {{turbo?:boolean, held?:number[], scatterSymbol?:string}} opts
    */
-  async spinTo(grid, { turbo = false, held = [], scatterSymbol = 'SCATTER' } = {}) {
+  async spinTo(grid, { turbo = false, held = [], scatterSymbol = 'SCATTER', bells = [], bellLabel = null } = {}) {
     if (this.spinning) return;
     this.spinning = true;
     this.clearEffects();
@@ -110,13 +133,17 @@ export class HotReels {
     let scattersSoFar = 0;
     let anticipationStarted = false;
     const animations = [];
+    const bellAt = bellMap(bells);
+    // Hedef hücreler çan değerleriyle üretilir; dolgular sade kalır.
+    const targetHtml = (r) =>
+      grid[r].map((sym, row) => cellHtml(sym, bellAt.get(`${r}:${row}`), bellLabel)).join('');
 
     for (let r = 0; r < REELS; r += 1) {
       const target = grid[r];
 
       if (held.includes(r)) {
         // Tutulan makara dönmez; sembolleri olduğu gibi kalır.
-        this.stripEls[r].innerHTML = target.map(cellHtml).join('');
+        this.stripEls[r].innerHTML = targetHtml(r);
         scattersSoFar += target.filter((s) => s === scatterSymbol).length;
         continue;
       }
@@ -124,7 +151,9 @@ export class HotReels {
       const current = this.grid[r];
       const filler = Array.from({ length: fillerCount + r * 2 }, randomFiller);
       const strip = this.stripEls[r];
-      strip.innerHTML = [...target, ...filler, ...current].map(cellHtml).join('');
+      strip.innerHTML =
+        targetHtml(r) +
+        [...filler, ...current].map((sym) => cellHtml(sym)).join('');
 
       const total = target.length + filler.length + current.length;
       const startY = -(total - ROWS) * cellH;
@@ -155,7 +184,7 @@ export class HotReels {
         animation.finished.then(() => {
           animation.cancel();
           strip.style.transform = 'translateY(0px)';
-          strip.innerHTML = target.map(cellHtml).join('');
+          strip.innerHTML = targetHtml(r);
           this.reelEls[r].classList.remove('spinning', 'anticipate');
           sfx.reelStop(r, anticipate);
         })
@@ -167,23 +196,6 @@ export class HotReels {
     await Promise.all(animations);
     this.grid = grid;
     this.spinning = false;
-  }
-
-  /**
-   * Temel oyunda makaraya düşen çanlara taşıdıkları tutarı basar ve
-   * jackpot çanlarını renkli sürümüyle değiştirir. Izgara her yeniden
-   * çizildiğinde (çevirme, respin) tekrar çağrılmalıdır.
-   */
-  decorateBells(cells = [], label) {
-    for (const cell of cells) {
-      const el = this.cellAt(cell.reel, cell.row);
-      if (!el || el.dataset.symbol !== 'BELL') continue;
-      const text = label(cell);
-      el.classList.add('bell-cell', 'reel-bell');
-      el.innerHTML =
-        symbolMarkup(bellSprite(cell)) +
-        (text ? `<span class="bell-tag">${text}</span>` : '');
-    }
   }
 
   /* ═══════════ Çan Zinciri tahtası ═══════════ */
