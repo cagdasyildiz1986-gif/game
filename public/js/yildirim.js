@@ -79,27 +79,46 @@ function layout() {
   const app = document.querySelector('.app');
   const topbar = document.querySelector('.topbar');
   const controls = document.querySelector('.controls');
-  const gap = 2;
-  const framePad = 30; // çerçeve kenarlığı + iç boşluk + tahta dolgusu
-
-  // Yükseklik, hücre boyutuna BAĞLI OLMAYAN ölçülerden hesaplanır; aksi
-  // halde sahne yüksekliği ile hücre boyutu birbirini besleyip döngü olur.
   const brand = document.querySelector('.brand');
+  const winbar = document.querySelector('.winbar');
+  const gap = 2;
+  // Çerçeve kenarlığı (4x2) + çerçeve dolgusu (9x2) + tahta dolgusu (2x2)
+  const frameChrome = 30;
+
+  const width = Math.min(app.clientWidth, 640) - 12;
+  cellW = Math.max(28, Math.floor((width - frameChrome - gap * (REELS - 1)) / REELS));
+
+  // Yükseklik, hücre boyutuna BAĞLI OLMAYAN gerçek ölçülerden çıkarılır;
+  // aksi halde sahne yüksekliği ile hücre boyutu birbirini besler.
+  const winbarH = (winbar?.offsetHeight || 34) + 8;
   const reserved =
-    topbar.offsetHeight + controls.offsetHeight + (brand?.offsetHeight || 0) + 56 + 26;
-  const width = Math.min(app.clientWidth, 620) - 12;
-  cellW = Math.max(30, Math.floor((width - framePad - gap * (REELS - 1)) / REELS));
-  const heightCap = (app.clientHeight - reserved - framePad) / ROWS;
-  cellH = Math.max(30, Math.floor(Math.min(cellW * 1.22, heightCap)));
+    topbar.offsetHeight +
+    controls.offsetHeight +
+    (brand?.offsetHeight || 0) +
+    winbarH + frameChrome + 22;
+  const heightCap = (app.clientHeight - reserved) / ROWS;
+  cellH = Math.max(28, Math.floor(Math.min(cellW * 1.22, heightCap)));
 
   const root = document.documentElement.style;
   root.setProperty('--cell-w', `${cellW}px`);
   root.setProperty('--cell-h', `${cellH}px`);
 
+  // Emniyet kemeri: hesap tutmazsa (yazı tipi, güvenli alan, tarayıcı çubuğu)
+  // kazanç bandı alt panellere değene kadar hücreyi küçült.
+  if (winbar && controls) {
+    for (let guard = 0; guard < 8; guard += 1) {
+      if (winbar.getBoundingClientRect().bottom <= controls.getBoundingClientRect().top - 2) break;
+      cellH = Math.max(24, cellH - 4);
+      root.setProperty('--cell-h', `${cellH}px`);
+    }
+  }
+
   const layer = $('bolts');
   if (layer) {
     const r = layer.getBoundingClientRect();
-    if (r.width && r.height) layer.setAttribute('viewBox', `0 0 ${Math.round(r.width)} ${Math.round(r.height)}`);
+    if (r.width && r.height) {
+      layer.setAttribute('viewBox', `0 0 ${Math.round(r.width)} ${Math.round(r.height)}`);
+    }
   }
 
   // Var olan taşları yeni ölçüye taşı
@@ -428,11 +447,13 @@ function renderPlayer(player) {
   const inFree = state.free.remaining > 0;
   document.body.classList.toggle('free-mode', inFree);
 
-  // Üst şeritteki hap: temel oyunda oyun kimliği, bedava dönüşte
-  // kalan dönüş ve biriken kalıcı çarpan.
-  $('mode-text').textContent = inFree
-    ? `BEDAVA ${state.free.remaining} · ÇARPAN x${fmt(Math.max(1, state.free.multiplier))}`
-    : '6 × 5 · TUMBLE';
+  // Üst şerit temel oyunda boştur; bedava dönüşte kalan dönüş ve
+  // biriken kalıcı çarpan burada durur.
+  $('free-hud').hidden = !inFree;
+  if (inFree) {
+    $('mode-text').textContent =
+      `BEDAVA ${state.free.remaining} · ÇARPAN x${fmt(Math.max(1, state.free.multiplier))}`;
+  }
 
   $('spin-label').textContent = inFree ? 'BEDAVA' : 'ÇEVİR';
   $('bet-up').disabled = inFree;
@@ -446,7 +467,7 @@ function setMultiplierHud(value, bump = true) {
   $('mode-text').textContent =
     `BEDAVA ${state.free.remaining} · ÇARPAN x${fmt(Math.max(1, value))}`;
   if (bump) {
-    const pill = $('mode-pill');
+    const pill = $('free-hud');
     pill.classList.remove('bump');
     void pill.offsetWidth;
     pill.classList.add('bump');
@@ -880,8 +901,8 @@ function bindEvents() {
     sfx.click();
     toast('Turnuvalar yakında — şimdilik görevlerden puan kazanabilirsiniz.', 2800);
   });
-  $('mode-pill').addEventListener('click', () => {
-    if (state.free.remaining > 0) return;
+  $('btn-info').addEventListener('click', () => {
+    sfx.click();
     renderPaytable();
     openModal('modal-paytable');
   });
@@ -957,7 +978,6 @@ async function boot() {
   if (window.SLOT_DEMO) {
     const { demoApi } = await import('./demo.js');
     backend = demoApi;
-    $('demo-badge').hidden = false;
   }
 
   try {
@@ -975,6 +995,8 @@ async function boot() {
     $('app').hidden = false;
 
     layout();
+    const logoImg = document.querySelector('.brand-logo');
+    if (logoImg && !logoImg.complete) logoImg.addEventListener('load', layout, { once: true });
     buildGrid();
     renderPlayer(st.player);
     bindEvents();
