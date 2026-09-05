@@ -63,7 +63,7 @@ export const MOTIFS = [
  */
 const RAW = [
   ['Lucky Reels', ['slot', 'populer', 'jackpot'], 'ember', 'fruit', 'yuksek', 95.8, 'lucky-reels'],
-  ['7 Hot Çan Zinciri', ['slot', 'populer', 'yeni', 'jackpot'], 'lava', 'bell', 'yuksek', 95.6, 'sevenhot'],
+  ['7 Hot Çan Zinciri', ['slot', 'populer', 'yeni', 'jackpot'], 'lava', 'bell', 'yuksek', 95.1, 'sevenhot'],
   ['Yıldırım Göklerin Öfkesi', ['slot', 'populer', 'yeni', 'bonus-buy'], 'amethyst', 'phoenix', 'yuksek', 95.4, 'yildirim'],
 
 
@@ -203,7 +203,8 @@ function hash(str) {
  * tarafından palet + motiften vektörel olarak üretilir.
  */
 export const COVER_IMAGES = {
-  yildirim: 'img/yildirim-cover.webp'
+  yildirim: 'img/yildirim-cover.webp',
+  sevenhot: 'img/sevenhot-cover.webp'
 };
 
 /** Oynanabilir motorların arayüz sayfaları. */

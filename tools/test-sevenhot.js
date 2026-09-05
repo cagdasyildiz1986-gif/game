@@ -61,9 +61,21 @@ for (let i = 0; i < 300000; i += 1) {
       }
       prevHeld = step.held.length;
     }
-    const last = round.scatterRespin.steps.at(-1);
+    const steps = round.scatterRespin.steps;
+    const last = steps.at(-1);
     if (last.scatterCount > SCATTER_RESPIN.target) {
       failures.push(`respin hedefi aşıldı: ${last.scatterCount}`);
+    }
+    /* Kural: dizi yalnızca YENİ scatter geldiği sürece sürer. */
+    for (const step of steps.slice(0, -1)) {
+      if (step.gained <= 0) {
+        failures.push('scatter eklenmeden respin devam etti');
+        break;
+      }
+    }
+    if (last.gained > 0 && last.scatterCount < SCATTER_RESPIN.target
+        && steps.length < SCATTER_RESPIN.maxSpins) {
+      failures.push('scatter eklendiği hâlde respin durdu');
     }
   }
 

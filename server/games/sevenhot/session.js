@@ -82,9 +82,9 @@ function publicWins(wins) {
 /**
  * Scatter tutmalı respin dizisi.
  *
- * Scatter içeren makaralar tutulur, kalanlar yeniden döner. Ekranda 2+
- * scatter varken makaralar EN AZ `minSpins` tur döner — yeni scatter
- * gelmese bile. Hedef sayıya (5) ulaşılırsa dizi hemen biter.
+ * Scatter içeren makaralar tutulur, kalanlar yeniden döner. 2 scatter
+ * geldiğinde bir tur daha döner; o turda YENİ bir scatter eklenirse bir tur
+ * daha döner, eklenmezse dizi biter. Hedef sayıya (5) ulaşılırsa hemen biter.
  */
 function runScatterRespins({ rng, grid, totalBet, payoutScale, startCount }) {
   const steps = [];
@@ -112,8 +112,8 @@ function runScatterRespins({ rng, grid, totalBet, payoutScale, startCount }) {
     last = res;
 
     if (after >= SCATTER_RESPIN.target) break;
-    // Garanti turlar dolduysa ve yeni scatter gelmediyse dizi biter.
-    if (spin >= SCATTER_RESPIN.minSpins && after === beforeCount) break;
+    // Yeni scatter eklenmediyse dizi biter; eklendiyse bir tur daha döner.
+    if (after === beforeCount) break;
     beforeCount = after;
   }
 

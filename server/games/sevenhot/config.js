@@ -42,19 +42,19 @@ export const WILD_REELS = [1, 2, 3];
 export const PAYTABLE = {
   SEVEN:  { 3: 40, 4: 200, 5: 1000 },
   BAR:    { 3: 25, 4: 120, 5: 600 },
-  MELON:  { 3: 15, 4: 57,  5: 285 },
-  GRAPE:  { 3: 12, 4: 43,  5: 210 },
-  ORANGE: { 3: 6,  4: 25,  5: 120 },
-  PLUM:   { 3: 6,  4: 25,  5: 120 },
-  LEMON:  { 3: 4,  4: 14,  5: 75 },
-  CHERRY: { 3: 4,  4: 14,  5: 75 }
+  MELON:  { 3: 15, 4: 60,  5: 300 },
+  GRAPE:  { 3: 12, 4: 45,  5: 220 },
+  ORANGE: { 3: 6,  4: 27,  5: 130 },
+  PLUM:   { 3: 6,  4: 27,  5: 130 },
+  LEMON:  { 3: 4,  4: 15,  5: 80 },
+  CHERRY: { 3: 4,  4: 15,  5: 80 }
 };
 
 /** Scatter: konumdan bağımsız, TOPLAM bahis çarpanı. */
-export const SCATTER_PAY = { 3: 1.5, 4: 7, 5: 40 };
+export const SCATTER_PAY = { 3: 2, 4: 10, 5: 50 };
 
 /** Scatter bedava dönüş ödülü (retrigger'da da aynı tablo). */
-export const FREE_SPINS = { 3: 7, 4: 13, 5: 22 };
+export const FREE_SPINS = { 3: 9, 4: 16, 5: 27 };
 
 /* ═══════════ Scatter tutmalı respin ═══════════ */
 
@@ -64,11 +64,6 @@ export const SCATTER_RESPIN = {
   max: 4,
   /** Bu sayıya ulaşınca respin biter (ve bedava dönüş tetiklenir). */
   target: 5,
-  /**
-   * Yeni scatter gelmese bile makaralar en az bu kadar tur döner.
-   * 2 scatter gören oyuncuya gerçek bir şans verilir.
-   */
-  minSpins: 2,
   /** Üst sınır — sonsuz döngüye karşı. */
   maxSpins: 10
 };
@@ -102,10 +97,10 @@ export const BELL_VALUES = [
   { id: 'c1',    weight: 320, value: 1 },
   { id: 'c2',    weight: 230, value: 2 },
   { id: 'c3',    weight: 150, value: 3 },
-  { id: 'c4',    weight: 90,  value: 4 },
-  { id: 'c7',    weight: 45,  value: 7 },
-  { id: 'c12',   weight: 18,  value: 12 },
-  { id: 'c20',   weight: 6,   value: 20 },
+  { id: 'c5',    weight: 90,  value: 5 },
+  { id: 'c8',    weight: 45,  value: 8 },
+  { id: 'c15',   weight: 18,  value: 15 },
+  { id: 'c25',   weight: 6,   value: 25 },
   { id: 'MINI',  weight: 12,    jackpot: 'MINI' },
   { id: 'MINOR', weight: 4,     jackpot: 'MINOR' },
   { id: 'MAJOR', weight: 0.30,  jackpot: 'MAJOR' },

@@ -76,7 +76,7 @@ npm install && npm start   # http://localhost:3000
 | **Üyelik** | Kayıt/giriş (scrypt), kalıcı bakiye, misafirden hesaba yükseltme |
 | **Puan** | Satılmaz — yalnızca görevlerle ve oyun kazançlarıyla elde edilir |
 | **Lucky Reels** | 5×3, 20 hat · bedava dönüş (x3, retrigger) · Jackpot Cards · RTP ~%95,8 |
-| **7 HOT** | 5×4, 40 hat · scatter tutmalı respin · Çan Zinciri (tut & kazan) · RTP ~%95,6 |
+| **7 HOT** | 5×4, 40 hat · scatter tutmalı respin · Çan Zinciri (tut & kazan) · RTP ~%95,1 |
 | **YILDIRIM** | 6×5, hat yok · tumble · biriken çarpan küreleri · RTP ~%95,4 |
 | **Jackpotlar** | Lucky Reels: 4 progresif havuz · 7 HOT: Mini/Minör/Majör sabit + Grand progresif |
 | **Kapaklar** | 107 oyunun kapağı vektörel üretilir — tek bayt görsel dosyası yok |
@@ -318,10 +318,10 @@ uygulamak mümkün değildir; bu bilinçli bir tasarım kararıdır.
 | 🍋 Limon | 5 | 20 | 100 |
 | 🍒 Kiraz | 5 | 20 | 100 |
 
-**Scatter (💲 Dolar)** — toplam bahis çarpanı: 3× → 1,5 · 4× → 7 · 5× → 40.
-Ekranda 2–4 scatter varsa **scatter'lı makaralar tutulur** ve kalanlar yeniden döner.
-Makaralar **en az 2 tur** döner — yeni scatter gelmese bile; 5 scatter'a ulaşılırsa
-dizi hemen biter. 3 scatter **7 bedava dönüş** verir (4 scatter: 13, 5 scatter: 22).
+**Scatter (💲 Dolar)** — toplam bahis çarpanı: 3× → 2, 4× → 10, 5× → 50.
+3 scatter 12, 4 scatter 15, 5 scatter 20 **bedava dönüş** kazandırır. Bedava dönüşlerde
+tüm kazançlar **x3** çarpanlıdır, daha cömert makara şeritleri kullanılır ve yeni
+scatterlar +5 dönüş ekler.
 
 **Jackpot Cards** — her ücretli dönüşün ardından rastgele tetiklenir. Aynı türden 3 kart
 açan oyuncu ilgili progresif havuzu kazanır: ♣ Sinek, ♦ Karo, ♥ Kupa, ♠ Maça.
@@ -348,8 +348,9 @@ yaygındır; buradaki semboller, oranlar, ödeme tablosu ve denge bu projeye öz
 **WILD** yalnızca 2., 3. ve 4. makarada görünür; scatter ve çan yerine geçmez.
 
 **Scatter (💲 Dolar)** — toplam bahis çarpanı: 3× → 2, 4× → 10, 5× → 50.
-Ekranda 2–4 scatter varsa **scatter'lı makaralar tutulur**, kalanlar yeniden döner;
-yeni scatter gelmezse respin biter. 3 scatter 8, 4 scatter 15, 5 scatter 25
+Ekranda 2–4 scatter varsa **scatter'lı makaralar tutulur** ve kalanlar bir tur daha
+döner. O turda **yeni bir scatter eklenirse** bir tur daha döner; eklenmezse dizi
+biter. 5 scatter'a ulaşılırsa hemen durur. 3 scatter 9, 4 scatter 16, 5 scatter 27
 **bedava dönüş** verir. Bedava dönüş şeritlerinde çan bulunmaz.
 
 **Çan Zinciri** — ekrana 5 çan düşerse tur başlar. Çanlar kilitlenir, boş kareler
@@ -358,19 +359,19 @@ döner; her yeni çan sayacı 3 dönüşe sıfırlar. Tur sonunda tüm çanlar �
 - Ekran tamamen dolarsa nakit çanlar **x3** (Boost çanı varsa **x4**) çarpanla ödenir.
 - **Boost** çanı tur sonunda toplam bahsin 10 katı nakde döner.
 - **Grand** çanı bilerek sık düşer ama tek başına ödemez: jackpot için ekranda
-  **3 tane** gerekir. Olmazsa her biri toplam bahsin 15–35 katı nakde döner.
+  **3 tane** gerekir. Olmazsa her biri toplam bahsin 10–25 katı nakde döner.
 
 **Jackpot merdiveni** — Mini (bahsin 12 katı), Minör (34), Majör (300) **sabit**
 katlardır; böylece her bahis seviyesinde adil çalışırlar. Grand tek **progresif**
 havuzdur ve her dönüşün %1,2'sinden beslenir.
 
 Tutarlar bilerek küçük tutulur, karşılığında jackpot çanları **sık** düşer:
-Mini 1/747 dönüş, Minör 1/2.217, Majör 1/30.303, Grand 1/95.238. Oyuncu bir
+Mini 1/751 dönüş, Minör 1/2.270, Majör 1/30.303, Grand 1/222.222. Oyuncu bir
 oturumda gerçekten jackpot görür — büyük ama hiç gelmeyen bir merdiven yerine
 kademeli ve ulaşılabilir bir yapı tercih edildi.
 
-4 milyon dönüşlük ölçüm: hat %46,3 · scatter %5,1 · bedava dönüş %7,4 ·
-Çan Zinciri %36,9 → **toplam %95,6**.
+2 milyon dönüşlük ölçüm: hat %46,7 · scatter %4,5 · bedava dönüş %8,3 ·
+Çan Zinciri %35,6 → **toplam %95,1**.
 
 ### YILDIRIM · Göklerin Öfkesi (6×5, hat yok)
 
