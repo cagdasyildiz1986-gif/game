@@ -550,19 +550,11 @@ export const demoApi = {
   /* ---- Site ---- */
   async home() {
     const pick = (filter, sort, limit) => GAMES.filter(filter).sort(sort).slice(0, limit).map(gameView);
+    // Sunucudakiyle aynı: tek "Tüm Oyunlar" ızgarası (katalogda yalnızca
+    // oynanabilir oyunlar var, aynı kartları raylarda tekrarlamıyoruz).
     const rows = [
-      { id: 'oynanabilir', title: 'Şimdi Oynanabilir', subtitle: 'Tam sürüm oyunlar',
-        games: pick((g) => g.playable, byPopularity, 12) },
-      { id: 'populer', title: 'Popüler Oyunlar',
-        games: pick((g) => g.categories.includes('populer'), byPopularity, 12) },
-      { id: 'yeni', title: 'Yeni Eklenenler',
-        games: pick((g) => g.categories.includes('yeni'), (a, b) => a.order - b.order, 12) },
-      { id: 'jackpot', title: 'Jackpot Oyunları',
-        games: pick((g) => g.categories.includes('jackpot'), byPopularity, 12) },
-      { id: 'masa', title: 'Masa Oyunları',
-        games: pick((g) => g.categories.includes('masa'), byPopularity, 12) },
-      { id: 'bonus-buy', title: 'Bonus Buy',
-        games: pick((g) => g.categories.includes('bonus-buy'), byPopularity, 12) }
+      { id: 'oynanabilir', title: 'Tüm Oyunlar', subtitle: 'Hepsi tam sürüm',
+        layout: 'grid', games: pick((g) => g.playable, byPopularity, 24) }
     ];
     if (state.player.recent.length) {
       const recent = state.player.recent.map((id) => GAME_BY_ID.get(id)).filter(Boolean).map(gameView);

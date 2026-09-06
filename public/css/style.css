@@ -33,6 +33,9 @@ body {
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
+  /* Efekt katmanları (şimşek, sıçrama) çerçevenin dışına taşar; bunlar
+     ekran kenarında kırpılır, sayfayı yana kaydırmaz. */
+  overflow-x: hidden;
 }
 
 #sprite-host { position: absolute; width: 0; height: 0; overflow: hidden; }
@@ -461,55 +464,155 @@ body {
 .spin-btn.busy { animation: spinPulse 1s linear infinite; }
 @keyframes spinPulse { to { transform: rotate(360deg); } }
 
-/* ---------- Modallar ---------- */
+/* ---------- Modallar ----------
+   Oyun içi modallar site lobisinden bağımsızdır: kabin karanlık olduğu
+   için kart da karanlıktır ve vurgu rengini oyunun kendi altınından
+   (--g-1 / --g-2) alır. Böylece dört oyunda da tek bir düzen vardır. */
 .modal {
   position: fixed;
   inset: 0;
   z-index: 60;
   display: grid;
-  place-items: center;
-  padding: 16px;
-  background: rgba(16, 22, 40, .55);
-  backdrop-filter: blur(3px);
+  place-items: end center;
+  padding: 0;
+  background: rgba(2, 6, 18, .68);
+  backdrop-filter: blur(6px);
+  animation: modalFade .18s ease;
 }
+@keyframes modalFade { from { opacity: 0; } }
 .modal[hidden] { display: none; }
 .modal-card {
   width: min(520px, 100%);
-  max-height: 86dvh;
+  max-height: 88dvh;
   display: flex;
   flex-direction: column;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
+  /* Mobilde alttan gelen sayfa; masaüstünde ortalanmış kart */
+  background: linear-gradient(180deg, rgba(20, 28, 56, .98), rgba(8, 12, 30, .99));
+  border: 1px solid var(--g-2, rgba(255, 208, 110, .4));
+  border-bottom: 0;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -18px 50px rgba(0, 0, 0, .6);
   overflow: hidden;
+  animation: modalUp .26s cubic-bezier(.2, .9, .3, 1);
+}
+@keyframes modalUp { from { transform: translateY(14px); opacity: .4; } }
+/* Kaydırma tutamağı */
+.modal-card::before {
+  content: '';
+  display: block;
+  width: 42px; height: 4px;
+  margin: 8px auto 0;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, .22);
+  flex: 0 0 auto;
+}
+@media (min-width: 560px) {
+  .modal { place-items: center; padding: 16px; }
+  .modal-card { border-radius: 20px; border-bottom: 1px solid var(--g-2, rgba(255,208,110,.4)); }
+  .modal-card::before { display: none; }
 }
 .modal-head {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--line);
+  gap: 10px;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
 }
-.modal-head h2 { margin: 0; font-size: 16px; color: var(--text); }
-.modal-body { padding: 14px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.modal-head h2 {
+  margin: 0;
+  font-size: 15px; font-weight: 800; letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--g-1, #ffd77a);
+}
+.modal-head .icon-btn {
+  width: 34px; height: 34px; flex: 0 0 34px;
+  display: grid; place-items: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  background: rgba(255, 255, 255, .07);
+  color: #eef2ff;
+  font-size: 15px;
+  cursor: pointer;
+}
+.modal-head .icon-btn:active { transform: scale(.92); }
+.icon-btn svg { width: 20px; height: 20px; }
+.modal-body {
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  color: #e6ebff;
+}
 
 .wide-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   margin-bottom: 8px;
-  padding: 13px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: var(--surface-2);
-  color: var(--text);
-  font-size: 14px;
+  padding: 14px 15px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  background: rgba(255, 255, 255, .06);
+  color: #eef2ff;
+  font-size: 14px; font-weight: 600;
   text-align: left;
   cursor: pointer;
 }
-.wide-btn:active { transform: scale(.98); }
-.wide-btn.danger { border-color: rgba(207,63,86,.35); color: var(--danger); }
+.wide-btn:active { transform: scale(.985); }
+.wide-btn svg { width: 19px; height: 19px; flex: 0 0 19px; color: var(--g-1, #ffd77a); }
+.wide-btn.danger {
+  justify-content: center;
+  border-color: rgba(255, 120, 110, .45);
+  background: rgba(120, 20, 20, .3);
+  color: #ffb3ad;
+}
+.wide-btn.danger:disabled { opacity: .4; }
 
-.fineprint { font-size: 11px; color: var(--dim); line-height: 1.6; margin: 14px 0 0; }
-.muted { color: var(--text-2); font-size: 13px; }
+/* ---------- Otomatik oyun paneli ---------- */
+.auto-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 12px 0 14px;
+}
+.auto-opt {
+  display: grid;
+  gap: 2px;
+  padding: 13px 6px;
+  border-radius: 13px;
+  border: 1.5px solid rgba(255, 255, 255, .16);
+  background: rgba(255, 255, 255, .06);
+  color: #eef2ff;
+  cursor: pointer;
+  text-align: center;
+}
+.auto-opt b {
+  font-size: 20px; font-weight: 900;
+  color: var(--g-1, #ffd77a);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.auto-opt i {
+  font-style: normal;
+  font-size: 9.5px; letter-spacing: 1.3px; font-weight: 700;
+  color: rgba(230, 235, 255, .5);
+}
+.auto-opt:active { transform: scale(.95); }
+.auto-opt[data-auto="inf"] { grid-column: span 3; }
+.auto-opt[data-auto="inf"] b { font-size: 22px; }
+.auto-note {
+  display: flex; gap: 8px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(255, 255, 255, .1);
+  font-size: 11.5px; line-height: 1.55;
+  color: rgba(230, 235, 255, .68);
+  margin-bottom: 12px;
+}
+.auto-note b { color: var(--g-1, #ffd77a); font-weight: 700; }
+
+.fineprint { font-size: 11px; color: rgba(230, 235, 255, .45); line-height: 1.6; margin: 14px 0 0; }
+.muted { color: rgba(230, 235, 255, .7); font-size: 13px; line-height: 1.6; }
 
 .pt-row {
   display: flex; align-items: center; gap: 12px;
@@ -523,23 +626,39 @@ body {
   font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 99px;
   background: var(--gold-soft); color: var(--gold);
 }
-.pt-note { font-size: 12.5px; color: var(--text-2); line-height: 1.65; }
-.pt-section { margin: 16px 0 8px; color: var(--text); font-size: 13.5px; font-weight: 700; }
+.pt-note { font-size: 12.5px; color: rgba(230, 235, 255, .72); line-height: 1.65; }
+.pt-section {
+  margin: 18px 0 8px;
+  color: var(--g-1, #ffd77a);
+  font-size: 11.5px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  padding-bottom: 5px;
+}
+.pt-row { border-bottom: 1px solid rgba(255, 255, 255, .08); }
 
 .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; }
 .chip {
   padding: 9px 15px;
   border-radius: 99px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, .16);
+  background: rgba(255, 255, 255, .06);
+  color: #eef2ff;
   font-weight: 600;
   cursor: pointer;
 }
 .chip:active { transform: scale(.95); }
 
-.kv { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
-.kv span:last-child { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.kv {
+  display: flex; justify-content: space-between; gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, .09);
+  font-size: 13px;
+  color: rgba(230, 235, 255, .72);
+}
+.kv span:last-child {
+  color: var(--g-1, #ffd77a);
+  font-weight: 700; font-variant-numeric: tabular-nums; text-align: right;
+}
 .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; word-break: break-all; color: var(--muted); }
 
 /* ---------- Kutlama ---------- */

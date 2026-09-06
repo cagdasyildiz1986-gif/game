@@ -1,4 +1,4 @@
-# 🎰 AURUM — Sosyal Casino Platformu
+# ⭐ Star Game — Sosyal Casino Platformu
 
 Mobil öncelikli bir casino sitesi ve içindeki tam sürüm slot oyunu.
 **Node.js** sunucu üzerinde çalışır, **PWA** olarak sunulur ve **Capacitor** ile
@@ -6,7 +6,7 @@ Android/iOS uygulamasına dönüştürülebilir.
 
 Dört katman vardır:
 
-1. **Site (AURUM)** — lobi, 108 oyunluk katalog, kategoriler, arama, favoriler,
+1. **Site (Star Game)** — lobi, 4 oyunluk katalog, kategoriler, arama, favoriler,
    üyelik, kalıcı bakiye, detaylı profil ve görev/puan sistemi.
 2. **Slotlar** — dört tam oynanabilir motor, hepsi sunucu taraflı RNG ile.
    Her oyunun kendi teması, paleti ve arayüzü vardır:
@@ -71,7 +71,7 @@ npm install && npm start   # http://localhost:3000
 
 | | |
 |---|---|
-| **Site** | 108 oyunluk katalog, 8 kategori, 8 sağlayıcı, arama, favoriler, görevler |
+| **Site** | 4 oyunluk katalog (hepsi oynanabilir), arama, favoriler, görevler |
 | **Canlı** | Texas Hold'em ve Blackjack, WebSocket, özel masa + davet kodu, bot koltukları |
 | **Yönetim** | Kullanıcı/bakiye yönetimi, RTP ve masa ayarları, bakiye kayıt defteri |
 | **Para birimi** | TL (₺) varsayılan; USD/EUR/Çip seçilebilir — yalnızca gösterim |
@@ -83,7 +83,7 @@ npm install && npm start   # http://localhost:3000
 | **YILDIRIM** | 6×5, hat yok · tumble · biriken çarpan küreleri · RTP ~%95,4 |
 | **MAVİ MERA** | 5×3, 20 hat · toplayıcı balıkçı · 4 balıkçıda seviye atlama · RTP ~%95,8 |
 | **Jackpotlar** | Lucky Reels: 4 progresif havuz · 7 HOT ve MAVİ MERA: Mini/Minör/Majör sabit + Grand progresif |
-| **Kapaklar** | Oynanabilir dördü hariç 104 oyunun kapağı vektörel üretilir |
+| **Kapaklar** | Her oyunun kendi kapak görseli var; vektörel üretim yedekte durur |
 | **Güvenlik** | Tüm matematik ve RNG **sunucuda**; istemci sadece sonucu canlandırır |
 | **Adalet** | HMAC-SHA256 tabanlı *provably fair* (sunucu tohumu + istemci tohumu + nonce) |
 | **Arayüz** | Mobil öncelikli, dokunmatik, turbo + otomatik oyun, offline kabuk (PWA) |
@@ -228,7 +228,7 @@ Hızlı Oyunlar — ayrıca Favoriler.
 sıfırlanır; kilometre taşları (ilk dönüş, kayıt, ilk bonus turu, 1.000 dönüş, jackpot)
 kalıcıdır. Ödüller `Topla` ile bakiyeye eklenir.
 
-**Oyun kapakları:** Katalogdaki 108 oyunun neredeyse tamamı için görsel dosyası yoktur.
+**Oyun kapakları:** Kapak görseli olmayan oyunlar için vektörel üretim kullanılır.
 Her oyunun bir **palet** (16 seçenek) ve **motif**i (24 seçenek) vardır;
 `public/js/cover.js` bunlardan arka plan, ışık huzmeleri, motif ve altın konturlu
 başlık kilidi olan bir SVG üretir. Kendi kapak görseli tanımlanmış oyunlar

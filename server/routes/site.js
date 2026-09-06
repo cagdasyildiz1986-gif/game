@@ -70,37 +70,18 @@ router.get('/home', optionalAccount, (req, res) => {
   const pick = (filter, sort, limit) =>
     GAMES.filter(filter).sort(sort).slice(0, limit).map((g) => view(g, account));
 
+  /**
+   * Vitrin rayları. Katalogda yalnızca oynanabilir oyunlar bulunduğu için
+   * aynı kartları birden çok rayda tekrarlamıyoruz: tek bir "Tüm Oyunlar"
+   * ızgarası + varsa "Son Oynadıkların" yeterli.
+   */
   const rows = [
     {
       id: 'oynanabilir',
-      title: 'Şimdi Oynanabilir',
-      subtitle: 'Tam sürüm oyunlar',
-      games: pick((g) => g.playable, byPopularity, 12)
-    },
-    {
-      id: 'populer',
-      title: 'Popüler Oyunlar',
-      games: pick((g) => g.categories.includes('populer'), byPopularity, 12)
-    },
-    {
-      id: 'yeni',
-      title: 'Yeni Eklenenler',
-      games: pick((g) => g.categories.includes('yeni'), (a, b) => a.order - b.order, 12)
-    },
-    {
-      id: 'jackpot',
-      title: 'Jackpot Oyunları',
-      games: pick((g) => g.categories.includes('jackpot'), byPopularity, 12)
-    },
-    {
-      id: 'masa',
-      title: 'Masa Oyunları',
-      games: pick((g) => g.categories.includes('masa'), byPopularity, 12)
-    },
-    {
-      id: 'bonus-buy',
-      title: 'Bonus Buy',
-      games: pick((g) => g.categories.includes('bonus-buy'), byPopularity, 12)
+      title: 'Tüm Oyunlar',
+      subtitle: 'Hepsi tam sürüm',
+      layout: 'grid',
+      games: pick((g) => g.playable, byPopularity, 24)
     }
   ];
 

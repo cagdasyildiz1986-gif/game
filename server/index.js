@@ -54,7 +54,7 @@ app.use((err, req, res, next) => {
 });
 
 const server = app.listen(config.port, config.host, () => {
-  console.log(`🎰 AURUM http://localhost:${config.port} adresinde çalışıyor`);
+  console.log(`⭐ Star Game http://localhost:${config.port} adresinde çalışıyor`);
 });
 
 // Gercek zamanli masa oyunlari (WebSocket, /live)

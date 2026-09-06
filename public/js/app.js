@@ -657,9 +657,11 @@ function bindEvents() {
     openModal('modal-auto');
   });
 
-  $('auto-options').innerHTML = [10, 25, 50, 100]
-    .map((n) => `<button class="chip" data-auto="${n}">${n}</button>`)
-    .join('') + '<button class="chip" data-auto="inf">∞</button>';
+  // Büyük dokunma hedefleri: üç sütunluk ızgara, sonuncusu tam genişlik
+  $('auto-options').innerHTML = [10, 25, 50, 100, 250]
+    .map((n) => `<button class="auto-opt" data-auto="${n}"><b>${n}</b><i>DÖNÜŞ</i></button>`)
+    .join('') +
+    '<button class="auto-opt" data-auto="inf"><b>∞</b><i>DURDURANA KADAR</i></button>';
   $('auto-options').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-auto]');
     if (!btn) return;

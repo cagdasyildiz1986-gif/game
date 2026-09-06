@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>7 HOT · Çan Zinciri · AURUM</title>
+<title>7 HOT · Çan Zinciri · Star Game</title>
 <meta name="description" content="5x4 · 40 hat · Çan Zinciri tut-ve-kazan özelliği. Sanal kredi ile oynanır, gerçek para yoktur.">
 <meta name="theme-color" content="#0a1024">
 <meta name="mobile-web-app-capable" content="yes">
@@ -163,9 +163,11 @@
       <button class="icon-btn" data-close aria-label="Kapat">✕</button>
     </header>
     <div class="modal-body">
-      <button class="wide-btn" id="menu-paytable">📋 Ödeme Tablosu &amp; Kurallar</button>
-      <button class="wide-btn" id="menu-stats">📊 İstatistikler</button>
-      <a class="wide-btn" href="./#/oyun/7-hot-can-zinciri" style="text-decoration:none;display:block;text-align:center">↩︎ Oyun Sayfasına Dön</a>
+      <button class="wide-btn" id="menu-paytable"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Ödeme Tablosu &amp; Kurallar</button>
+      <button class="wide-btn" id="menu-stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>İstatistikler</button>
+      <a class="wide-btn" href="./#/gorevler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M3 12h18M12 8v12M12 8c-2-4-7-3-7 0 0 1.6 3.4 1.6 7 0zM12 8c2-4 7-3 7 0 0 1.6-3.4 1.6-7 0z"/></svg>Görevler &amp; Günlük Ödül</a>
+      <a class="wide-btn" id="menu-back" href="./#/oyun/7-hot-can-zinciri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6 4 12l6 6M4 12h16"/></svg>Oyun Sayfasına Dön</a>
+      <a class="wide-btn" id="menu-home" href="./#/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7M6 10v9h12v-9"/></svg>Lobiye Dön</a>
       <p class="fineprint">
         Bu oyun yalnızca eğlence amaçlıdır. Sanal kredilerin parasal karşılığı yoktur ve
         gerçek para ile satın alınamaz veya nakde çevrilemez. 18+
@@ -191,8 +193,12 @@
       <button class="icon-btn" data-close aria-label="Kapat">✕</button>
     </header>
     <div class="modal-body">
-      <p class="muted">Kaç dönüş otomatik oynansın?</p>
-      <div class="chip-row" id="auto-options"></div>
+      <div class="auto-note">
+        <span>Seçtiğin sayıda dönüş kendiliğinden oynanır. <b>Bakiye yetmezse</b>
+        ya da bir <b>bonus turu</b> başlarsa otomatik oyun durur; istediğin an
+        ÇEVİR düğmesine basarak da durdurabilirsin.</span>
+      </div>
+      <div class="auto-grid" id="auto-options"></div>
       <button class="wide-btn danger" id="auto-stop">Otomatik Oyunu Durdur</button>
     </div>
   </div>

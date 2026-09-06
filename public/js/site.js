@@ -1,5 +1,5 @@
 /**
- * AURUM lobi uygulamasi.
+ * Star Game lobi uygulamasi.
  *
  * Hash tabanli yonlendirici + gorunumler. Sunucu API'si ile konusur;
  * statik barindirmada (GitHub Pages) demo arka ucuna duser.
@@ -13,6 +13,8 @@ const state = {
   player: null,
   home: null,
   categories: [],
+  /** Arama sayfası boşken tüm katalog gösterilir; ilk yüklemede doldurulur. */
+  allGames: [],
   backend: api,
   route: null,
   settings: null,
@@ -98,12 +100,12 @@ function heroSlides() {
     },
     {
       kicker: 'ÖNE ÇIKAN OYUN',
-      title: '<em>Lucky Reels</em><br>20 hat · x3 bedava dönüş',
-      text: 'Jackpot Cards bonusu ve %95,8 RTP ile tam sürüm slot.',
+      title: '<em>Mavi Mera</em><br>Balıkçı topladıkça seviye atla',
+      text: '20 hat · para balıkları · x10\'a çıkan bedava dönüş merdiveni.',
       cta: 'Hemen Oyna',
-      route: '#/oyun/lucky-reels',
-      palette: ['#241a4d', '#6b52d8', '#f0d79a'],
-      motif: 'reels'
+      route: '#/oyun/mavi-mera',
+      palette: ['#0a2b4a', '#1c8fd6', '#ffd77a'],
+      motif: 'anchor'
     },
     {
       kicker: 'GÖREVLER',
@@ -139,11 +141,10 @@ function heroArt(slide, index) {
     <g opacity=".09" fill="${light}">
       <path d="M318 96 236 -46h12zM318 96 292 -52h8zM318 96 352 -50h9zM318 96 400 -18v22zM318 96 400 178v24z"/>
     </g>
-    <g fill="url(#hm${index})" opacity=".9">
-      <circle cx="330" cy="104" r="34"/>
-      <circle cx="330" cy="104" r="24" fill="#04040a" opacity=".45"/>
-      <text x="330" y="116" text-anchor="middle" font-size="30" font-weight="900"
-        font-family="Georgia, serif" fill="${light}">₳</text>
+    <g opacity=".92">
+      <circle cx="330" cy="104" r="36" fill="url(#hm${index})" opacity=".28"/>
+      <path d="M330 74l9.3 19 20.7 3-15 14.6 3.5 20.6L330 121.5 311.5 131.2l3.5-20.6-15-14.6 20.7-3z"
+        fill="url(#hm${index})"/>
     </g>
     <g fill="${main}" opacity=".85">
       <circle cx="286" cy="152" r="15"/><circle cx="372" cy="146" r="11"/>
@@ -201,10 +202,10 @@ function footer() {
       <div>
         <h4>Oyunlar</h4>
         <ul>
+          <li data-route="#/kategori/tumu">Tüm Oyunlar</li>
           <li data-route="#/kategori/slot">Slot</li>
-          <li data-route="#/kategori/masa">Masa Oyunları</li>
-          <li data-route="#/kategori/rulet">Rulet</li>
-          <li data-route="#/kategori/bonus-buy">Bonus Buy</li>
+          <li data-route="#/kategori/jackpot">Jackpot</li>
+          <li data-live="1">Canlı Masalar</li>
         </ul>
       </div>
       <div>
@@ -240,12 +241,12 @@ function footer() {
     </div>
 
     <p class="footer-legal">
-      AURUM bir <b>sosyal casino</b>dur. Oyunlarda kullanılan krediler sanaldır;
+      Star Game bir <b>sosyal casino</b>dur. Oyunlarda kullanılan krediler sanaldır;
       satın alınamaz, nakde çevrilemez ve hiçbir parasal karşılığı yoktur.
       Kredi yalnızca görevler ve oyun içi ödüllerle kazanılır.
       Bu site gerçek para ile bahis kabul etmez ve spor bahisleri içermez.
       18 yaşından küçükler kullanamaz. Oyun bir eğlence aracıdır; gelir kaynağı değildir.
-      <br><br>© ${new Date().getFullYear()} AURUM · Tüm hakları saklıdır.
+      <br><br>© ${new Date().getFullYear()} Star Game · Tüm hakları saklıdır.
     </p>
   </footer>`;
 }
@@ -291,7 +292,21 @@ function renderHome() {
     <button class="pill" data-route="#/kategori/favoriler">${icon('heart')}<span>Favoriler</span></button>
   </div>
 
-  ${trustBar()}
+  ${data.rows
+    .filter((row) => row.games.length)
+    .map(
+      (row) => `<section class="section">
+        <div class="section-head">
+          <h3 class="section-title"><span class="bar"></span>${escapeHtml(row.title)}</h3>
+          ${row.subtitle ? `<span class="section-sub">${escapeHtml(row.subtitle)}</span>` : ''}
+          ${row.layout === 'grid' ? '' : `<button class="section-more" data-route="#/kategori/tumu">
+            Tümünü Gör ${icon('chevron')}
+          </button>`}
+        </div>
+        <div class="${row.layout === 'grid' ? 'grid' : 'rail'}">${row.games.map(gameCard).join('')}</div>
+      </section>`
+    )
+    .join('')}
 
   ${jackpotBanner(data.jackpots)}
 
@@ -300,18 +315,18 @@ function renderHome() {
       <h3 class="section-title"><span class="bar"></span>Canlı Masalar</h3>
       <button class="section-more" data-live="1">Masalara Git ${icon('chevron')}</button>
     </div>
-    <div class="rail" style="grid-auto-columns:62%">
-      <button class="table-card" data-live="holdem" style="margin:0">
+    <div class="table-grid">
+      <button class="table-card" data-live="holdem">
         <div class="table-icon">🂡</div>
-        <div style="flex:1;min-width:0">
+        <div class="table-body">
           <div class="table-name">Texas Hold'em</div>
           <div class="table-meta">Oyuncuya karşı · ev oynamaz</div>
         </div>
         ${icon('chevron')}
       </button>
-      <button class="table-card" data-live="blackjack" style="margin:0">
+      <button class="table-card" data-live="blackjack">
         <div class="table-icon">🃏</div>
-        <div style="flex:1;min-width:0">
+        <div class="table-body">
           <div class="table-name">Blackjack</div>
           <div class="table-meta">Krupiyeye karşı · 3:2 ödeme</div>
         </div>
@@ -320,21 +335,7 @@ function renderHome() {
     </div>
   </section>
 
-  ${data.rows
-    .filter((row) => row.games.length)
-    .map(
-      (row) => `<section class="section">
-        <div class="section-head">
-          <h3 class="section-title"><span class="bar"></span>${escapeHtml(row.title)}</h3>
-          ${row.subtitle ? `<span class="section-sub">${escapeHtml(row.subtitle)}</span>` : ''}
-          <button class="section-more" data-route="#/kategori/${row.id === 'oynanabilir' || row.id === 'son' ? 'tumu' : row.id}">
-            Tümünü Gör ${icon('chevron')}
-          </button>
-        </div>
-        <div class="rail">${row.games.map(gameCard).join('')}</div>
-      </section>`
-    )
-    .join('')}
+  ${trustBar()}
 
   ${footer()}`;
 }
@@ -405,6 +406,11 @@ async function renderSearch(params) {
   const q = params.get('q') || '';
   let results = null;
   if (q.trim().length >= 2) results = await state.backend.searchGames(q);
+  // Arama kutusu boşsa katalog kendiliğinden listelenir (boş ekran kalmaz).
+  if (!results && !state.allGames.length) {
+    const all = await state.backend.games({ category: 'tumu', perPage: 60 });
+    state.allGames = all.games;
+  }
 
   return `
   <div class="page-head"><h1 class="page-title">Oyun Ara</h1></div>
@@ -414,7 +420,7 @@ async function renderSearch(params) {
       value="${escapeHtml(q)}" autocomplete="off" enterkeyhint="search">
   </div>
 
-  <div class="filters">
+  <div class="filters filters-wrap">
     ${state.categories
       .map((c) => `<button class="chip" data-route="#/kategori/${c.id}">${escapeHtml(c.name)}</button>`)
       .join('')}
@@ -427,12 +433,11 @@ async function renderSearch(params) {
            <div class="grid">${results.games.map(gameCard).join('')}</div>`
         : `<div class="empty">${icon('search')}<p>“${escapeHtml(q)}” için sonuç yok.</p></div>`
       : `<section class="section">
-          <div class="section-head"><h3 class="section-title"><span class="bar"></span>Popüler Aramalar</h3></div>
-          <div class="filters">
-            ${['Altın', 'Rulet', 'Jackpot', 'Bonus', 'Ejder', 'Klasik']
-              .map((t) => `<button class="chip" data-search="${t}">${t}</button>`)
-              .join('')}
+          <div class="section-head">
+            <h3 class="section-title"><span class="bar"></span>Tüm Oyunlar</h3>
+            <span class="section-sub">${state.allGames.length} oyun</span>
           </div>
+          <div class="grid">${state.allGames.map(gameCard).join('')}</div>
         </section>`
   }`;
 }
@@ -479,8 +484,8 @@ async function renderGameDetail(id) {
   }
 
   <section class="section">
-    <div class="section-head"><h3 class="section-title"><span class="bar"></span>Benzer Oyunlar</h3></div>
-    <div class="rail">${similar.map(gameCard).join('')}</div>
+    <div class="section-head"><h3 class="section-title"><span class="bar"></span>Diğer Oyunlar</h3></div>
+    <div class="grid">${similar.map(gameCard).join('')}</div>
   </section>
   ${footer()}`;
 }
@@ -695,7 +700,7 @@ function openAvatarPicker() {
 const PAGES = {
   'nasil-calisir': {
     title: 'Nasıl Çalışır?',
-    body: `<p>AURUM sanal kredilerle oynanan bir sosyal casinodur. Krediler
+    body: `<p>Star Game sanal kredilerle oynanan bir sosyal casinodur. Krediler
       <b>satın alınamaz</b>; görevleri tamamlayarak ve oyunlarda kazanarak elde edilir.</p>
     <p>Tüm oyun sonuçları <b>sunucuda</b> üretilir. Tarayıcı yalnızca sunucudan gelen
       sonucu canlandırır; bakiye veya sonuç istemciden değiştirilemez.</p>

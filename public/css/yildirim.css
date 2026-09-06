@@ -322,6 +322,9 @@ body.storm {
 /* ---------- Şimşek ---------- */
 /* Katman çerçevenin üstüne taşar: şimşek gökyüzünden başlayıp
    hedef hücreye iner. viewBox piksel cinsindendir (layout() ayarlar). */
+/* Şimşekler yukarıdan iner: dikeyde taşar, yatayda kırpılır ki
+   sayfa yana kaydırılabilir hâle gelmesin. */
+.storm .machine { overflow-x: clip; }
 .bolt-layer {
   position: absolute;
   left: 0; right: 0;

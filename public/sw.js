@@ -1,5 +1,5 @@
 /* Basit uygulama-kabugu onbellegi - offline acilis ve hizli yukleme icin. */
-const CACHE = 'aurum-v3';
+const CACHE = 'stargame-v4';
 // Goreli yollar: uygulama hem kok dizinde (Node sunucusu) hem de
 // alt dizinde (GitHub Pages: /<repo>/) ayni sekilde calisir.
 const SHELL = [
@@ -21,6 +21,12 @@ const SHELL = [
   './js/audio.js',
   './js/reels.js',
   './js/symbols.js',
+  './sevenhot.html',
+  './yildirim.html',
+  './mavimera.html',
+  './css/sevenhot.css',
+  './css/yildirim.css',
+  './css/mavimera.css',
   './manifest.webmanifest',
   './icons/icon.svg'
 ];
