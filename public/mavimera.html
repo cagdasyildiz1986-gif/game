@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>MAVİ MERA · AURUM</title>
+<meta name="description" content="5x3 · 20 hat · Balıkçı para balıklarını toplar, her 4 balıkçıda seviye atlar. Sanal kredi ile oynanır, gerçek para yoktur.">
+<meta name="theme-color" content="#062338">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="preload" as="image" href="img/mavimera-bg.webp">
+<link rel="preload" as="image" href="img/mavimera-logo.webp">
+<link rel="stylesheet" href="css/mavimera.css">
+<script>
+  try { document.documentElement.dataset.theme = localStorage.getItem('aurum-theme') || 'light'; } catch (e) {}
+</script>
+</head>
+<body class="mera">
+
+<div id="sprite-host" aria-hidden="true"></div>
+<div class="stage-bg" aria-hidden="true"></div>
+
+<div id="loader" class="loader">
+  <img class="loader-logo-img" src="img/mavimera-logo.webp" alt="MAVİ MERA">
+  <div class="loader-bar"><i></i></div>
+  <p class="loader-note">Sanal kredi ile oynanır · Gerçek para yoktur</p>
+</div>
+
+<div id="app" class="app" hidden>
+
+  <header class="topbar">
+    <a class="glass-btn" href="./#/oyun/mavi-mera" aria-label="Lobiye dön" id="btn-back">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"
+        stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+        stroke-linejoin="round" fill="none"/></svg>
+    </a>
+    <button class="glass-btn" id="btn-menu" aria-label="Menü">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"
+        stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
+    </button>
+    <div class="jackpots mera-jackpots" id="jackpots"></div>
+    <button class="glass-btn" id="btn-sound" aria-label="Ses">
+      <svg viewBox="0 0 24 24" aria-hidden="true" id="icon-sound"></svg>
+    </button>
+  </header>
+
+  <main class="stage">
+    <div class="brand">
+      <img class="brand-logo" src="img/mavimera-logo.webp" alt="MAVİ MERA">
+    </div>
+
+    <div class="machine">
+      <!-- Bedava dönüş + seviye göstergesi -->
+      <div class="fs-hud mera-hud" id="fs-badge" hidden>
+        <div class="fs-hud-item">
+          <span class="fs-hud-label">KALAN</span>
+          <span class="fs-hud-value" id="fs-count">0</span>
+        </div>
+        <div class="fs-hud-sep"></div>
+        <div class="fs-hud-item">
+          <span class="fs-hud-label">ÇARPAN</span>
+          <span class="fs-hud-value gold" id="fs-mult">x1</span>
+        </div>
+        <div class="fs-hud-sep"></div>
+        <div class="fs-hud-item">
+          <span class="fs-hud-label">BALIKÇI</span>
+          <span class="fs-hud-value"><span id="fs-fisher">0</span>/4</span>
+        </div>
+      </div>
+
+      <div class="frame">
+        <div class="lines-badge left">20<i>HAT</i></div>
+        <div class="lines-badge right">20<i>HAT</i></div>
+        <div class="reels" id="reels"></div>
+        <svg class="lines" id="lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="fx" id="fx"></div>
+      </div>
+
+      <div class="win-info-strip" id="win-info"></div>
+    </div>
+  </main>
+
+  <footer class="controls">
+    <div class="meters">
+      <div class="meter">
+        <span class="meter-label">BAKİYE</span>
+        <span class="meter-value" id="balance">0</span>
+      </div>
+      <div class="meter meter-win">
+        <span class="meter-label">KAZANÇ</span>
+        <span class="meter-value" id="win-value">0</span>
+      </div>
+      <div class="meter">
+        <span class="meter-label">BAHİS</span>
+        <span class="meter-value" id="bet">0</span>
+      </div>
+    </div>
+
+    <div class="pad">
+      <button class="round-btn" id="bet-down" aria-label="Bahis azalt">−</button>
+      <button class="round-btn" id="bet-up" aria-label="Bahis artır">+</button>
+
+      <button class="spin-btn" id="spin" aria-label="Çevir">
+        <span class="spin-ring"></span>
+        <span class="spin-inner">
+          <svg class="spin-arrows" viewBox="0 0 48 48" aria-hidden="true"><path
+            d="M24 8a16 16 0 0 1 15 11l-5-1 6 8 6-8-4 1A21 21 0 0 0 24 3zM24 40A16 16 0 0 1 9 29l5 1-6-8-6 8 4-1A21 21 0 0 0 24 45z"
+            fill="currentColor"/></svg>
+          <span class="spin-caption" id="spin-label">ÇEVİR</span>
+        </span>
+      </button>
+
+      <button class="round-btn" id="btn-turbo" aria-label="Turbo mod">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z"
+          fill="currentColor"/></svg>
+      </button>
+      <button class="round-btn" id="btn-auto" aria-label="Otomatik oyun">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M9 16l3-8 3 8M10 13.5h4" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </footer>
+</div>
+
+<!-- ===== Modallar ===== -->
+
+<div class="modal" id="modal-paytable" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>Ödeme Tablosu</h2>
+      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
+    </header>
+    <div class="modal-body" id="paytable-body"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal-menu" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>Menü</h2>
+      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
+    </header>
+    <div class="modal-body">
+      <button class="wide-btn" id="menu-paytable">📋 Ödeme Tablosu &amp; Kurallar</button>
+      <button class="wide-btn" id="menu-stats">📊 İstatistikler</button>
+      <a class="wide-btn" href="./#/oyun/mavi-mera" style="text-decoration:none;display:block;text-align:center">↩︎ Oyun Sayfasına Dön</a>
+      <p class="fineprint">
+        Bu oyun yalnızca eğlence amaçlıdır. Sanal kredilerin parasal karşılığı yoktur ve
+        gerçek para ile satın alınamaz veya nakde çevrilemez. 18+
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal-stats" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>İstatistikler</h2>
+      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
+    </header>
+    <div class="modal-body" id="stats-body"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal-auto" hidden>
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>Otomatik Oyun</h2>
+      <button class="icon-btn" data-close aria-label="Kapat">✕</button>
+    </header>
+    <div class="modal-body">
+      <p class="muted">Kaç dönüş otomatik oynansın?</p>
+      <div class="chip-row" id="auto-options"></div>
+      <button class="wide-btn danger" id="auto-stop">Otomatik Oyunu Durdur</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bedava dönüş GİRİŞ ekranı -->
+<div class="fs-screen fs-intro" id="fs-intro" hidden>
+  <div class="fs-rays"></div>
+  <div class="fs-scatters" id="fs-scatters"></div>
+  <div class="fs-card">
+    <div class="fs-ribbon">DÜMEN</div>
+    <div class="fs-headline">BALIK TUTMA VAKTİ!</div>
+    <div class="fs-big" id="fs-intro-count">0</div>
+    <div class="fs-sub">BEDAVA DÖNÜŞ</div>
+    <div class="fs-note">Balıkçı ekrandaki tüm para balıklarını toplar ·
+      her <b>4 balıkçı</b> bir üst seviye</div>
+    <button class="fs-cta" id="fs-intro-start">BAŞLA</button>
+  </div>
+</div>
+
+<!-- Seviye atlama ekranı -->
+<div class="fs-screen level-screen" id="level-up" hidden>
+  <div class="fs-rays"></div>
+  <div class="fs-card level-card">
+    <div class="fs-ribbon level-ribbon">4 BALIKÇI</div>
+    <div class="fs-headline">SEVİYE ATLADIN</div>
+    <div class="level-ladder" id="level-ladder"></div>
+    <div class="fs-big level-big" id="level-mult">x2</div>
+    <div class="fs-sub"><span id="level-extra">10</span> DÖNÜŞ DAHA</div>
+  </div>
+</div>
+
+<!-- Bedava dönüş BİTİŞ ekranı -->
+<div class="fs-screen fs-outro" id="fs-outro" hidden>
+  <div class="fs-rays"></div>
+  <div class="fs-card">
+    <div class="fs-headline">İYİ AVLAR!</div>
+    <div class="fs-sub" style="margin-bottom:6px">TOPLAM KAZANÇ</div>
+    <div class="fs-big fs-big-win" id="fs-outro-total">0</div>
+    <div class="fs-stats">
+      <div><span id="fs-outro-spins">0</span><i>dönüş</i></div>
+      <div><span id="fs-outro-fishers">0</span><i>balıkçı</i></div>
+      <div><span id="fs-outro-mult">x1</span><i>son çarpan</i></div>
+    </div>
+    <button class="fs-cta" id="fs-outro-collect">TOPLA</button>
+  </div>
+</div>
+
+<div class="celebration" id="celebration" hidden>
+  <div class="celebration-inner">
+    <div class="celebration-title" id="celebration-title">BÜYÜK KAZANÇ</div>
+    <div class="celebration-amount" id="celebration-amount">0</div>
+    <div class="celebration-sub" id="celebration-sub">dokunarak devam et</div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="js/env.js"></script>
+<script type="module" src="js/mavimera.js"></script>
+</body>
+</html>

@@ -6,9 +6,9 @@ Android/iOS uygulamasına dönüştürülebilir.
 
 Dört katman vardır:
 
-1. **Site (AURUM)** — lobi, 107 oyunluk katalog, kategoriler, arama, favoriler,
+1. **Site (AURUM)** — lobi, 108 oyunluk katalog, kategoriler, arama, favoriler,
    üyelik, kalıcı bakiye, detaylı profil ve görev/puan sistemi.
-2. **Slotlar** — üç tam oynanabilir motor, hepsi sunucu taraflı RNG ile.
+2. **Slotlar** — dört tam oynanabilir motor, hepsi sunucu taraflı RNG ile.
    Her oyunun kendi teması, paleti ve arayüzü vardır:
    - **Lucky Reels** — 5x3, 20 sabit hat; bedava dönüşler ve Jackpot Cards bonusu.
    - **7 HOT · Çan Zinciri** — 5x4, 40 hat; scatter tutmalı respin, "tut ve kazan"
@@ -16,6 +16,9 @@ Dört katman vardır:
    - **YILDIRIM · Göklerin Öfkesi** — 6x5, **hat yok** (8+ sembol nerede olursa ödüyor);
      tumble (patla-düş-doldur) ve gökten yıldırımla inen çarpan küreleri.
      Bedava dönüşte çarpan birikir.
+   - **MAVİ MERA** — 5x3, 20 hat; balıkçı wild ekrandaki para balıklarını toplar,
+     bedava dönüşte her 4 balıkçıda seviye atlanır (x1 → x2 → x3 → x10) ve
+     tur 10 dönüş uzar.
 3. **Canlı masalar** — gerçek zamanlı **Texas Hold'em** (oyuncuya karşı, ev oynamaz) ve
    **Blackjack** (krupiye sabit kurallarla oynar). Masa açma, arkadaş daveti, özel masa.
 4. **Yönetim paneli** — kullanıcı yönetimi, bakiye tanımlama, oyun kazanç/kayıp
@@ -68,18 +71,19 @@ npm install && npm start   # http://localhost:3000
 
 | | |
 |---|---|
-| **Site** | 107 oyunluk katalog, 8 kategori, 8 sağlayıcı, arama, favoriler, görevler |
+| **Site** | 108 oyunluk katalog, 8 kategori, 8 sağlayıcı, arama, favoriler, görevler |
 | **Canlı** | Texas Hold'em ve Blackjack, WebSocket, özel masa + davet kodu, bot koltukları |
 | **Yönetim** | Kullanıcı/bakiye yönetimi, RTP ve masa ayarları, bakiye kayıt defteri |
 | **Para birimi** | TL (₺) varsayılan; USD/EUR/Çip seçilebilir — yalnızca gösterim |
-| **Testler** | 82 birim testi + 16 uçtan uca canlı masa testi (`npm test`) |
+| **Testler** | 92 birim testi + 16 uçtan uca canlı masa testi (`npm test`) |
 | **Üyelik** | Kayıt/giriş (scrypt), kalıcı bakiye, misafirden hesaba yükseltme |
 | **Puan** | Satılmaz — yalnızca görevlerle ve oyun kazançlarıyla elde edilir |
 | **Lucky Reels** | 5×3, 20 hat · bedava dönüş (x3, retrigger) · Jackpot Cards · RTP ~%95,8 |
 | **7 HOT** | 5×4, 40 hat · scatter tutmalı respin · Çan Zinciri (tut & kazan) · RTP ~%95,1 |
 | **YILDIRIM** | 6×5, hat yok · tumble · biriken çarpan küreleri · RTP ~%95,4 |
-| **Jackpotlar** | Lucky Reels: 4 progresif havuz · 7 HOT: Mini/Minör/Majör sabit + Grand progresif |
-| **Kapaklar** | 107 oyunun kapağı vektörel üretilir — tek bayt görsel dosyası yok |
+| **MAVİ MERA** | 5×3, 20 hat · toplayıcı balıkçı · 4 balıkçıda seviye atlama · RTP ~%95,8 |
+| **Jackpotlar** | Lucky Reels: 4 progresif havuz · 7 HOT ve MAVİ MERA: Mini/Minör/Majör sabit + Grand progresif |
+| **Kapaklar** | Oynanabilir dördü hariç 104 oyunun kapağı vektörel üretilir |
 | **Güvenlik** | Tüm matematik ve RNG **sunucuda**; istemci sadece sonucu canlandırır |
 | **Adalet** | HMAC-SHA256 tabanlı *provably fair* (sunucu tohumu + istemci tohumu + nonce) |
 | **Arayüz** | Mobil öncelikli, dokunmatik, turbo + otomatik oyun, offline kabuk (PWA) |
@@ -139,9 +143,15 @@ server/
     config.js           Semboller, ödeme tablosu, hücre ağırlıkları, küre merdiveni
     engine.js           Izgara üretimi, 8+ sayımı, tumble/yerçekimi, küre düşürme
     session.js          Tur akışı: çarpan kuralı (temel / bedava dönüş), tavan
+  games/mavimera/       MAVİ MERA (5x3, 20 hat)
+    config.js           Semboller, ödeme tablosu, para balığı değerleri, seviye merdiveni
+    paylines.js         20 sabit ödeme hattı
+    engine.js           Çevirme, hat/dümen değerlendirme, balıkçı toplaması, seviye
+    session.js          Tur akışı: seviye çarpanı, bedava dönüş, jackpot muhasebesi
   routes/game.js        Lucky Reels REST API
   routes/sevenhot.js    7 HOT REST API
   routes/yildirim.js    YILDIRIM REST API
+  routes/mavimera.js    MAVİ MERA REST API
   store/memory.js       Oyuncu deposu (bellek + JSON dosyası)
 public/
   css/site.css          Tasarım sistemi: açık tema varsayılan, koyu tema
@@ -218,7 +228,7 @@ Hızlı Oyunlar — ayrıca Favoriler.
 sıfırlanır; kilometre taşları (ilk dönüş, kayıt, ilk bonus turu, 1.000 dönüş, jackpot)
 kalıcıdır. Ödüller `Topla` ile bakiyeye eklenir.
 
-**Oyun kapakları:** Katalogdaki 107 oyunun neredeyse tamamı için görsel dosyası yoktur.
+**Oyun kapakları:** Katalogdaki 108 oyunun neredeyse tamamı için görsel dosyası yoktur.
 Her oyunun bir **palet** (16 seçenek) ve **motif**i (24 seçenek) vardır;
 `public/js/cover.js` bunlardan arka plan, ışık huzmeleri, motif ve altın konturlu
 başlık kilidi olan bir SVG üretir. Kendi kapak görseli tanımlanmış oyunlar
@@ -411,13 +421,69 @@ Tur başına en yüksek ödeme toplam bahsin **5.000 katıdır**.
 1 milyon dönüşlük ölçüm: temel oyun %54,7 · bedava dönüş %40,7 → **toplam %95,4**.
 Bedava dönüş 1/250 dönüş, kazanma sıklığı %46, ortalama 0,79 tumble.
 
+### MAVİ MERA (5×3, 20 hat)
+
+Balıkçılık temalı, **toplayıcı wild** oyunu. Semboller kendi başlarına hat öder;
+oyunun kalbi ise **para balıkları**dır.
+
+**Ödeme tablosu** (hat bahsi çarpanı — toplam bahis / 20):
+
+| Sembol | 3× | 4× | 5× |
+|---|---|---|---|
+| 🐟 Lüfer | 30 | 120 | 600 |
+| 🐠 Kırmızı Bandırma | 20 | 90 | 450 |
+| 🐡 Levrek | 15 | 60 | 300 |
+| 🐟 Çipura | 8 | 35 | 175 |
+| 🗼 Deniz Feneri | 7 | 28 | 140 |
+| 🕊️ Martı | 5 | 20 | 100 |
+| 🎣 Olta Makarası | 2,5 | 11 | 55 |
+| 🪝 Sahte Yem | 2,5 | 11 | 55 |
+| 🧰 Takım Kutusu | 2 | 9 | 45 |
+
+**Balıkçı (WILD)** — dümen ve para balığı dışındaki tüm sembollerin yerine geçer.
+Temel oyunda 2·3·4. makarada, **bedava dönüşte beş makaranın hepsinde** görünür.
+
+**Para balığı** — kendi başına ödemez; üstünde taşıdığı tutar **balık ekranda
+belirdiği anda** yazılıdır (sonradan açılmaz). Ekranda balıkçı varsa balıkçı
+**ekrandaki tüm** para balıklarını toplar; iki balıkçı varsa tutarlar **iki kez**
+ödenir. Değerler toplam bahsin 0,5–1.000 katı arasındadır; altın balıkların
+küçük bir bölümü nakit yerine **jackpot** taşır.
+
+**Dümen (SCATTER)** — 3× → 2, 4× → 8, 5× → 40 toplam bahis öder ve
+3 dümen 10, 4 dümen 15, 5 dümen 20 **bedava dönüş** verir.
+
+**Seviye merdiveni** — turun kalbi budur. Bedava dönüş boyunca toplanan her
+**4 balıkçı** bir üst basamağa çıkarır ve tura **10 dönüş** ekler:
+
+| Basamak | 1 | 2 | 3 | 4 |
+|---|---|---|---|---|
+| Çarpan | x1 | x2 | x3 | **x10** |
+
+Çarpan yalnızca toplanan para balıklarına uygulanır; jackpotlar çarpandan
+etkilenmez. Merdivenin tepesinden sonra çarpan x10'da kalır ama her 4 balıkçı
+yine 10 dönüş eklemeye devam eder — turun kendini sonsuza uzatmaması için
+balıkçı sıklığı bilerek 4 balıkçı ≈ 12 dönüşe ayarlıdır.
+
+**Jackpot merdiveni** — Mini (bahsin 40 katı), Minör (200), Majör (1.600) **sabit**
+katlardır; Grand tek **progresif** havuzdur ve her ücretli dönüşün %1'inden beslenir.
+Jackpot yalnızca o altın balık **toplanınca** ödenir — ekranda görüp toplayamamak
+oyunun gerilimidir. Ölçülen sıklıklar: Mini 1/2.313 dönüş, Minör 1/13.624,
+Majör 1/263.158, Grand 1/416.667.
+
+Tur başına en yüksek ödeme toplam bahsin **5.000 katıdır**.
+
+5 milyon dönüşlük ölçüm: temel oyun %36,6 · bedava dönüş %59,4 → **toplam %95,9**
+(hat %19,3 · dümen %0,9 · balıkçı toplaması %76,5). Bedava dönüş 1/257 dönüş,
+tur başına ortalama 21,9 dönüş; turların %14,3'ü x10 basamağına ulaşıyor.
+
 ### Testler
 
 ```bash
-npm test                # 82 birim testi (el değerlendirici, Hold'em, Blackjack, 7 HOT, YILDIRIM)
+npm test                # 92 birim testi (el değerlendirici, Hold'em, Blackjack, 7 HOT, YILDIRIM, MAVİ MERA)
 npm run simulate        # Lucky Reels RTP / volatilite simülasyonu
 npm run simulate:7hot   # 7 HOT RTP simülasyonu
 npm run simulate:storm  # YILDIRIM RTP simülasyonu
+npm run simulate:mera   # MAVİ MERA RTP simülasyonu
 ```
 
 Hold'em testleri arasında **~15.000 rastgele elde çip korunumu** kontrolü vardır;

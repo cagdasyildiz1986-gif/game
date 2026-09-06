@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import { config } from '../config.js';
 import { createPools } from '../game/jackpot.js';
 import { createPools as createSevenHotPools } from '../games/sevenhot/session.js';
+import { createPools as createMaviMeraPools } from '../games/mavimera/session.js';
 import { newServerSeed, hashSeed } from '../game/rng.js';
 import { round2 } from '../game/session.js';
 import { initialTaskState } from '../site/tasks.js';
@@ -25,6 +26,7 @@ const state = {
   sessions: new Map(), // token -> id
   jackpots: createPools(),
   sevenhot: createSevenHotPools(),
+  mavimera: createMaviMeraPools(),
   settings: { ...DEFAULT_SETTINGS },
   ledger: [] // son bakiye hareketleri (admin gorunumu icin)
 };
@@ -47,6 +49,7 @@ export function load() {
     state.sessions = new Map(Object.entries(raw.sessions || {}));
     state.jackpots = { ...state.jackpots, ...(raw.jackpots || {}) };
     state.sevenhot = { ...state.sevenhot, ...(raw.sevenhot || {}) };
+    state.mavimera = { ...state.mavimera, ...(raw.mavimera || {}) };
     state.settings = mergeSettings(DEFAULT_SETTINGS, raw.settings);
     state.ledger = Array.isArray(raw.ledger) ? raw.ledger.slice(-LEDGER_LIMIT) : [];
   } catch (err) {
@@ -69,6 +72,7 @@ export function save() {
           sessions: Object.fromEntries(state.sessions),
           jackpots: state.jackpots,
           sevenhot: state.sevenhot,
+          mavimera: state.mavimera,
           settings: state.settings,
           ledger: state.ledger
         })
@@ -223,6 +227,11 @@ export function getJackpots() {
 /** 7 HOT'un progresif havuzu (yalnızca GRAND ilerler). */
 export function getSevenHotPools() {
   return state.sevenhot;
+}
+
+/** MAVİ MERA'nın progresif havuzu (yalnızca GRAND ilerler). */
+export function getMaviMeraPools() {
+  return state.mavimera;
 }
 
 export function levelFromXp(xp) {
@@ -397,7 +406,8 @@ export function systemStats() {
     spins,
     houseEdge: wagered > 0 ? round2(((wagered - won) / wagered) * 100) : 0,
     jackpots: { ...state.jackpots },
-    sevenhot: { ...state.sevenhot }
+    sevenhot: { ...state.sevenhot },
+    mavimera: { ...state.mavimera }
   };
 }
 

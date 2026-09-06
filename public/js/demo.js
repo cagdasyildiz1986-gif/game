@@ -33,6 +33,13 @@ import { playRound as stormPlayRound, ensureState as stormEnsureState }
   from '../engine/games/yildirim/session.js';
 import * as STORM from '../engine/games/yildirim/config.js';
 import { PAYLINES as HOT_PAYLINES } from '../engine/games/sevenhot/paylines.js';
+import {
+  playRound as meraPlayRound,
+  ensureState as meraEnsureState,
+  createPools as meraCreatePools
+} from '../engine/games/mavimera/session.js';
+import * as MERA from '../engine/games/mavimera/config.js';
+import { PAYLINES as MERA_PAYLINES } from '../engine/games/mavimera/paylines.js';
 
 const STORAGE_KEY = 'lucky-reels-demo-state';
 const BET_LEVELS = [20, 40, 100, 200, 400, 1000, 2000];
@@ -85,7 +92,8 @@ function freshState() {
       lastSpinAt: 0
     },
     pools: createPools(),
-    hotPools: hotCreatePools()
+    hotPools: hotCreatePools(),
+    meraPools: meraCreatePools()
   };
 }
 
@@ -176,6 +184,23 @@ function jackpotView() {
 function hotPools() {
   if (!state.hotPools) state.hotPools = hotCreatePools();
   return state.hotPools;
+}
+
+/** Eski kayitlarda MAVİ MERA havuzu bulunmayabilir. */
+function meraPools() {
+  if (!state.meraPools) state.meraPools = meraCreatePools();
+  return state.meraPools;
+}
+
+function meraJackpotView(totalBet) {
+  const pools = meraPools();
+  return MERA.JACKPOTS.levels.map((level) => ({
+    id: level.id,
+    name: level.name,
+    color: level.color,
+    progressive: Boolean(level.progressive),
+    amount: round2(MERA.jackpotAmount(level.id, totalBet, pools))
+  }));
 }
 
 function hotJackpotView(totalBet) {
@@ -392,6 +417,86 @@ export const demoApi = {
       return {
         round: { ...round, nonce: state.player.stats.spins },
         player: publicPlayer()
+      };
+    }
+  },
+
+  /* ---- MAVİ MERA ---- */
+  mera: {
+    async config() {
+      return {
+        name: 'MAVİ MERA',
+        tagline: 'Her atışta yeni bir hikaye',
+        currency: { code: 'TRY', symbol: '₺', name: 'Türk Lirası', locale: 'tr-TR' },
+        rtp: 95.8,
+        reels: MERA.REELS,
+        rows: MERA.ROWS,
+        lines: MERA.LINES,
+        symbols: MERA.SYMBOLS,
+        wild: MERA.WILD,
+        wildReelsBase: MERA.WILD_REELS_BASE,
+        wildReelsFree: MERA.WILD_REELS_FREE,
+        scatter: MERA.SCATTER,
+        money: MERA.MONEY,
+        paytable: MERA.PAYTABLE,
+        scatterPay: MERA.SCATTER_PAY,
+        freeSpins: MERA.FREE_SPINS,
+        collect: MERA.COLLECT,
+        moneyValues: MERA.MONEY_VALUES.map(({ id, value, jackpot }) => ({ id, value, jackpot })),
+        paylines: MERA_PAYLINES,
+        betLevels: MERA.BET_LEVELS,
+        defaultBet: MERA.DEFAULT_BET,
+        maxWin: MERA.MAX_WIN,
+        jackpotLevels: MERA.JACKPOTS.levels.map(({ id, name, color, progressive, fixed }) => ({
+          id, name, color, progressive: Boolean(progressive), fixed: fixed || 0
+        }))
+      };
+    },
+    async state() {
+      const st = meraEnsureState(state.player);
+      persist();
+      return {
+        state: { bet: st.bet, free: { ...st.free, win: round2(st.free.win) } },
+        player: publicPlayer(),
+        jackpots: meraJackpotView(st.bet)
+      };
+    },
+    async setBet(bet) {
+      const st = meraEnsureState(state.player);
+      if (!MERA.BET_LEVELS.includes(bet)) throw new Error('Geçersiz bahis seviyesi.');
+      if (st.free.remaining > 0) {
+        throw new Error('Bedava dönüşler sırasında bahis değiştirilemez.');
+      }
+      st.bet = bet;
+      persist();
+      return { state: { bet: st.bet, free: st.free }, jackpots: meraJackpotView(bet) };
+    },
+    async jackpots(bet) {
+      return { jackpots: meraJackpotView(Number(bet) || MERA.DEFAULT_BET) };
+    },
+    async spin(bet) {
+      const { error, round } = meraPlayRound({
+        player: state.player,
+        pools: meraPools(),
+        rng,
+        bet
+      });
+      if (error) throw new Error(error);
+      state.player.xp = (state.player.xp || 0) + Math.max(1, Math.round(round.bet / 10));
+      applySpinToTasks(state.player.tasks, {
+        spin: {
+          totalWin: round.totalWin,
+          freeSpinsAwarded: round.freeSpinsAwarded,
+          jackpot: round.collect?.jackpotWins?.[0] || null
+        },
+        bet: round.bet,
+        totalSpins: state.player.stats.spins
+      });
+      persist();
+      return {
+        round: { ...round, nonce: state.player.stats.spins },
+        player: publicPlayer(),
+        jackpots: meraJackpotView(round.bet)
       };
     }
   },

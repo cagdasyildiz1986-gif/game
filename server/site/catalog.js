@@ -65,6 +65,7 @@ const RAW = [
   ['Lucky Reels', ['slot', 'populer', 'jackpot'], 'ember', 'fruit', 'yuksek', 95.8, 'lucky-reels'],
   ['7 Hot Çan Zinciri', ['slot', 'populer', 'yeni', 'jackpot'], 'lava', 'bell', 'yuksek', 95.1, 'sevenhot'],
   ['Yıldırım Göklerin Öfkesi', ['slot', 'populer', 'yeni', 'bonus-buy'], 'amethyst', 'phoenix', 'yuksek', 95.4, 'yildirim'],
+  ['Mavi Mera', ['slot', 'populer', 'yeni', 'jackpot'], 'ocean', 'anchor', 'yuksek', 95.8, 'mavimera'],
 
 
   ['Altın Firavun', ['slot', 'populer'], 'sand', 'pyramid', 'yuksek', 96.1],
@@ -204,14 +205,16 @@ function hash(str) {
  */
 export const COVER_IMAGES = {
   yildirim: 'img/yildirim-cover.webp',
-  sevenhot: 'img/sevenhot-cover.webp'
+  sevenhot: 'img/sevenhot-cover.webp',
+  mavimera: 'img/mavimera-cover.webp'
 };
 
 /** Oynanabilir motorların arayüz sayfaları. */
 export const ENGINE_PAGES = {
   'lucky-reels': 'game.html',
   sevenhot: 'sevenhot.html',
-  yildirim: 'yildirim.html'
+  yildirim: 'yildirim.html',
+  mavimera: 'mavimera.html'
 };
 
 export const GAMES = RAW.map(([name, categories, palette, motif, volatility, rtp, engine], index) => {

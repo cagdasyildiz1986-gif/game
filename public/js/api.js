@@ -159,6 +159,15 @@ export const api = {
     spin: (bet) => request('/yildirim/spin', { method: 'POST', body: { bet } })
   },
 
+  /* ---- MAVİ MERA ---- */
+  mera: {
+    config: () => request('/mavimera/config'),
+    state: () => request('/mavimera/state'),
+    setBet: (bet) => request('/mavimera/bet', { method: 'POST', body: { bet } }),
+    spin: (bet) => request('/mavimera/spin', { method: 'POST', body: { bet } }),
+    jackpots: (bet) => request(`/mavimera/jackpots?bet=${encodeURIComponent(bet)}`)
+  },
+
   async setClientSeed(clientSeed) {
     return request('/fair/client-seed', { method: 'POST', body: { clientSeed } });
   },

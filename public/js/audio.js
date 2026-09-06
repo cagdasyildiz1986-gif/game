@@ -213,5 +213,39 @@ export const sfx = {
   charge(step = 0) {
     tone({ freq: 320 + step * 110, type: 'square', duration: 0.1, gain: 0.09, sweep: 1600 });
     noise({ duration: 0.06, gain: 0.05, type: 'bandpass', freq: 2600, q: 3 });
+  },
+
+  /* ═══════════ MAVİ MERA · deniz paleti ═══════════ */
+
+  /** Oltanın savrulması: kısa bir vınlama + suya çarpma. */
+  cast() {
+    noise({ duration: 0.22, gain: 0.05, type: 'bandpass', freq: 900, sweepTo: 2600, q: 2 });
+    tone({ freq: 520, type: 'triangle', duration: 0.1, gain: 0.06, sweep: 260, at: 0.12 });
+  },
+
+  /**
+   * Balığın sarılıp çekilmesi: makara tıkırtısı + su şapırtısı.
+   * `weight` büyüdükçe ses kalınlaşır (jackpot balığı daha tok duyulur).
+   */
+  reelIn(weight = 1) {
+    const base = 380 + weight * 90;
+    tone({ freq: base, type: 'square', duration: 0.05, gain: 0.05, sweep: base * 1.6 });
+    tone({ freq: base * 1.5, type: 'sine', duration: 0.12, gain: 0.07, sweep: base * 2.4, at: 0.04 });
+    noise({ duration: 0.14, gain: 0.05 + weight * 0.01, type: 'lowpass', freq: 1400, sweepTo: 400, at: 0.03 });
+  },
+
+  /** Büyük av: derin bir su patlaması + yükselen üçlü akor. */
+  bigCatch() {
+    noise({ duration: 0.45, gain: 0.1, type: 'lowpass', freq: 2200, sweepTo: 260 });
+    [523, 659, 784, 1047].forEach((f, i) =>
+      tone({ freq: f, type: 'triangle', duration: 0.3, gain: 0.1, at: i * 0.075 }));
+    tone({ freq: 130, type: 'sine', duration: 0.5, gain: 0.09, sweep: 80, at: 0.05 });
+  },
+
+  /** Seviye atlama: dört basamaklı yükselen fanfar. */
+  levelUp() {
+    [392, 523, 659, 880, 1175].forEach((f, i) =>
+      tone({ freq: f, type: 'square', duration: 0.16, gain: 0.075, at: i * 0.09 }));
+    noise({ duration: 0.3, gain: 0.05, type: 'bandpass', freq: 1800, sweepTo: 4200, q: 2, at: 0.1 });
   }
 };
