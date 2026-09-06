@@ -181,6 +181,26 @@ body.mera {
   z-index: 3;
 }
 
+/* ---------- Sembol kutucukları ----------
+   Semboller tasarım görselinden çıkarılmış raster kutucuklardır ve
+   hücreyi kenardan kenara doldurur; makara zemini onların altında
+   yalnızca görsel yüklenene kadar görünür. */
+.mera .cell {
+  overflow: hidden;
+  /* Maketteki gibi kutucuklar arasında ince koyu ayraç */
+  box-shadow: inset 0 0 0 1px rgba(2, 16, 30, .6);
+}
+.mera .sym {
+  width: 100%;
+  height: 100%;
+  filter: none;
+}
+.mera .cell.dim .sym { opacity: .42; filter: grayscale(.55) brightness(.8); }
+/* Kazanan hücre: kutucuk hafifçe büyür, çerçevesi altınla parlar */
+.mera .cell.win { z-index: 2; }
+.mera .cell.win .sym { animation: meraPop .6s ease-in-out infinite alternate; }
+@keyframes meraPop { to { transform: scale(1.06); filter: brightness(1.22); } }
+
 /* ---------- Yan "20 HAT" rozetleri ---------- */
 .lines-badge {
   position: absolute;
@@ -213,19 +233,18 @@ body.mera {
 .cell.money-cell { position: relative; }
 .cell.money-cell::before {
   content: '';
-  position: absolute; inset: 3px;
-  border-radius: 7px;
-  border: 1.5px solid rgba(255, 214, 120, .55);
-  background: radial-gradient(circle at 50% 40%, rgba(255, 200, 90, .18), transparent 72%);
+  position: absolute; inset: 0;
+  border: 2px solid rgba(255, 214, 120, .75);
+  box-shadow: inset 0 0 18px rgba(255, 190, 70, .35);
   pointer-events: none;
-  z-index: 0;
+  z-index: 2;
 }
 .cell.money-cell .sym { position: relative; z-index: 1; }
 /* Tutar plakası balığın alt kenarına oturur; balığı örtmez ve
    makara dönerken de oradadır (sonradan eklenmez). */
 .cell.money-cell .money-tag {
   position: absolute;
-  left: 50%; bottom: 5%;
+  left: 50%; bottom: 6px;
   transform: translateX(-50%);
   font-size: clamp(8.5px, 2.7vw, 12px);
   font-weight: 900;
@@ -238,7 +257,7 @@ body.mera {
   border-radius: 5px;
   padding: 0 6px;
   white-space: nowrap;
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
   box-shadow: 0 2px 6px rgba(0, 0, 0, .7);
 }
@@ -585,6 +604,36 @@ body.mera {
   100% { opacity: 0; transform: translate(-50%, -62%) scale(.96); }
 }
 
+/* ---------- Modallar: oyun içi olduğu için koyu gemi paleti ---------- */
+.mera .modal-card {
+  background: linear-gradient(180deg, #0a2c48, #04182b);
+  border-color: rgba(126, 196, 240, .35);
+  color: #eaf6ff;
+}
+.mera .modal-head {
+  border-bottom-color: rgba(126, 196, 240, .25);
+}
+.mera .modal-head h2 { color: var(--g-1); }
+.mera .icon-btn {
+  color: #eaf6ff;
+  background: rgba(10, 46, 74, .85);
+  border: 1px solid rgba(126, 196, 240, .4);
+}
+.mera .wide-btn {
+  background: rgba(10, 46, 74, .8);
+  border: 1px solid rgba(126, 196, 240, .35);
+  color: #eaf6ff;
+}
+.mera .wide-btn.danger { border-color: rgba(255, 120, 110, .6); color: #ffc9c4; }
+.mera .chip {
+  background: rgba(10, 46, 74, .8);
+  border: 1px solid rgba(126, 196, 240, .35);
+  color: #eaf6ff;
+}
+.mera .muted, .mera .fineprint { color: rgba(206, 232, 250, .65); }
+.mera .kv { color: #eaf6ff; border-bottom: 1px solid rgba(126, 196, 240, .18); }
+.mera .kv span:last-child { color: var(--g-1); }
+
 /* ---------- Ödeme tablosu ---------- */
 .pt-section {
   margin: 14px 0 6px;
@@ -597,7 +646,13 @@ body.mera {
   display: flex; align-items: center; gap: 10px;
   padding: 5px 0;
 }
-.pt-row .sym { width: 44px; height: 44px; flex: 0 0 44px; }
+.pt-row { border-bottom: 1px solid rgba(126, 196, 240, .14); }
+.pt-row .sym {
+  width: 46px; height: 46px; flex: 0 0 46px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px rgba(255, 214, 120, .28);
+}
+.pt-row > div > div:first-child { color: #eaf6ff; font-weight: 700; }
 .pt-pays { font-size: 12px; color: rgba(206, 232, 250, .82); }
 .pt-pays b { color: var(--g-1); }
 .pt-tag {

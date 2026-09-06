@@ -440,6 +440,11 @@ oyunun kalbi ise **para balıkları**dır.
 | 🪝 Sahte Yem | 2,5 | 11 | 55 |
 | 🧰 Takım Kutusu | 2 | 9 | 45 |
 
+**Semboller** — oyunun kendi tasarım görselinden çıkarılmış raster kutucuklardır
+(`public/img/mavimera-symbols.webp`, tek 4x4 sprite sayfası). Her hücre sayfanın
+ilgili karesini gösterir; böylece makaradaki görüntü tasarımın birebir aynısıdır.
+Jackpot para balıkları aynı kutucuğun kademe rengine boyanmış hâlidir.
+
 **Balıkçı (WILD)** — dümen ve para balığı dışındaki tüm sembollerin yerine geçer.
 Temel oyunda 2·3·4. makarada, **bedava dönüşte beş makaranın hepsinde** görünür.
 

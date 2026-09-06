@@ -1,7 +1,7 @@
 import { api } from './api.js';
 import { sfx } from './audio.js';
 import { MeraReels, REELS, ROWS } from './mavimera-reels.js';
-import { buildSprite, symbolMarkup, moneySprite } from './mavimera-symbols.js';
+import { buildSprite, symbolMarkup } from './mavimera-symbols.js';
 
 /**
  * MAVİ MERA arayüzü.
@@ -84,7 +84,8 @@ function layout() {
   const width = Math.min(app.clientWidth, 620) - 12 - rail * 2;
   const cellW = Math.max(40, (width - framePad * 2 - gap * (REELS - 1)) / REELS);
   const heightCap = (app.clientHeight - reserved - framePad * 2) / ROWS;
-  const cellH = Math.max(40, Math.min(cellW * 1.45, heightCap));
+  // Maketteki kutucuklar neredeyse kare; sembol görselleri de kare kırpıldı.
+  const cellH = Math.max(40, Math.min(cellW * 0.96, heightCap));
 
   const root = document.documentElement.style;
   root.setProperty('--cell-w', `${Math.floor(cellW)}px`);
